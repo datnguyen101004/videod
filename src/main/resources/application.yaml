@@ -11,12 +11,12 @@ spring:
       ddl-auto: update
   servlet:
     multipart:
-      max-file-size: 200MB
-      max-request-size: 200MB
+      max-file-size: 500MB
+      max-request-size: 1000MB
 
 do:
   space:
-    name: videod
+    bucket: videod
     region: sgp1
     url: ${DO_STORAGE_URL}
     access_key: ${DO_ACCESS_KEY_ID}

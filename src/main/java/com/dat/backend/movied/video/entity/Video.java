@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import software.amazon.awssdk.annotations.NotNull;
 
 @Entity
 @Data
@@ -21,6 +22,7 @@ public class Video {
     private String description;
 
     @Enumerated(EnumType.STRING)
+    @NotNull
     private Category category;
 
     @Column

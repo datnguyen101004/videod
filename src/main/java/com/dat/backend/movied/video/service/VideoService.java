@@ -9,5 +9,4 @@ import java.io.IOException;
 
 public interface VideoService {
     public VideoResponse uploadVideo(MultipartFile file, CreateVideoDto createVideoDto);
-    public PutObjectResponse asyncClientMultipartUpload(MultipartFile file) throws IOException;
 }

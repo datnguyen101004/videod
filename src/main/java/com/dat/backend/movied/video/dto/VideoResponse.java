@@ -13,4 +13,5 @@ public class VideoResponse {
     private String title;
     private String description;
     private String url;
+    private String category;
 }

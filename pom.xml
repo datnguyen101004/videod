@@ -46,6 +46,14 @@
             <scope>compile</scope>
         </dependency>
 
+        <!-- Source: https://mvnrepository.com/artifact/software.amazon.awssdk/netty-nio-client -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>netty-nio-client</artifactId>
+            <version>2.42.8</version>
+            <scope>compile</scope>
+        </dependency>
+
         <!-- Source: https://mvnrepository.com/artifact/software.amazon.awssdk/s3-transfer-manager -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>

@@ -22,8 +22,13 @@ public class VideoController {
         return ResponseApi.success(videoService.uploadVideo(file, createVideoDto));
     }
 
-    @PostMapping("/upload/async")
+    /*@PostMapping("/upload/async")
     public PutObjectResponse uploadVideoAsync(@RequestPart("video") MultipartFile file) throws IOException {
         return videoService.asyncClientMultipartUpload(file);
     }
+
+    @PostMapping("/upload/multipart")
+    public String uploadMultipart(@RequestPart("video") MultipartFile file) throws IOException {
+        return videoService.multipartUpload(file);
+    }*/
 }

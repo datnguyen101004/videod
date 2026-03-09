@@ -18,6 +18,7 @@ public class ResponseApi<T> {
         return ResponseApi.<T>builder()
                 .statusCode(200)
                 .data(data)
+                .message("success")
                 .build();
     }
 

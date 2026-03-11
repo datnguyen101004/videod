@@ -13,6 +13,14 @@ spring:
     multipart:
       max-file-size: 500MB
       max-request-size: 1000MB
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GG_CLIENT_ID}
+            client-secret: ${GG_CLIENT_SECRET}
+
 
 do:
   space:
@@ -21,3 +29,8 @@ do:
     url: ${DO_STORAGE_URL}
     access_key: ${DO_ACCESS_KEY_ID}
     secret_key: ${DO_SECRET_KEY}
+
+jwt:
+  secret-key: 'Y0doaGJXNW5kWGxsYm5SaGRHUmhkR0YwZEhReU1ESTBMakU9'
+  expiredAccess: '4h'
+  expiredRefresh: '1d'

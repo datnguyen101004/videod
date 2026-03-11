@@ -9,10 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class VideoResponse {
-    private Long id;
-    private String title;
-    private String description;
-    private String url;
-    private String category;
+public class VideoDownloadRequest {
+    private Long videoId;
+    private String destinationPath;
 }

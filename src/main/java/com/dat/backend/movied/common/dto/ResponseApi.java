@@ -1,4 +1,4 @@
-package com.dat.backend.movied.video.dto;
+package com.dat.backend.movied.common.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

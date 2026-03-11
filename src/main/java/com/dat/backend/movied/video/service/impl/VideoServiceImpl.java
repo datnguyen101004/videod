@@ -3,8 +3,11 @@ package com.dat.backend.movied.video.service.impl;
 import com.dat.backend.movied.common.config.CustomThread;
 import com.dat.backend.movied.video.config.S3Properties;
 import com.dat.backend.movied.video.dto.CreateVideoDto;
+import com.dat.backend.movied.video.dto.VideoDownloadRequest;
 import com.dat.backend.movied.video.dto.VideoResponse;
+import com.dat.backend.movied.video.entity.Category;
 import com.dat.backend.movied.video.entity.Video;
+import com.dat.backend.movied.video.exception.ResourceNotExit;
 import com.dat.backend.movied.video.exception.VideoUploadException;
 import com.dat.backend.movied.video.repository.VideoRepository;
 import com.dat.backend.movied.video.service.VideoService;
@@ -15,15 +18,17 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.*;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -37,6 +42,7 @@ public class VideoServiceImpl implements VideoService {
     private static final long FILE_THRESHOLD = 200 * 1024 * 1024; // 200MB
     private final S3TransferManager s3TransferManager;
     private final ExecutorService executor;
+    private final S3Presigner s3Presigner;
 
     // Note: enable multipart
     private final S3AsyncClient s3AsyncClient;
@@ -47,13 +53,15 @@ public class VideoServiceImpl implements VideoService {
                             S3Properties properties,
                             CustomThread customThread,
                             S3TransferManager s3TransferManager,
-                            ExecutorService executor) {
+                            ExecutorService executor,
+                            S3Presigner s3Presigner) {
         this.videoRepository = videoRepository;
         this.s3AsyncClient = s3AsyncClient;
         this.properties = properties;
         this.customThread = customThread;
         this.s3TransferManager = s3TransferManager;
         this.executor = executor;
+        this.s3Presigner = s3Presigner;
     }
 
     // Upload video to DO space
@@ -128,13 +136,16 @@ public class VideoServiceImpl implements VideoService {
             Video video = new Video();
             video.setUrl(url);
             video.setTitle(createVideoDto.getTitle());
+            video.setCategory(Category.valueOf(createVideoDto.getCategory().toUpperCase()));
             video.setDescription(createVideoDto.getDescription());
+            video.setKeyStorage(key);
             videoRepository.save(video);
 
             return VideoResponse.builder()
                     .url(url)
                     .title(video.getTitle())
                     .description(video.getDescription())
+                    .id(video.getId())
                     .category(String.valueOf(video.getCategory()))
                     .build();
 
@@ -201,6 +212,34 @@ public class VideoServiceImpl implements VideoService {
         }
     }
 
+
+    @Override
+    public String downloadVideo(VideoDownloadRequest videoDownloadRequest) {
+        // Get the video information
+        Video video = videoRepository.findById(videoDownloadRequest.getVideoId())
+                .orElseThrow(() -> new ResourceNotExit("Video not found"));
+
+        // Generate the URL for download with GET request
+        return createPresignedGetUrl(properties.getBucket(), video.getKeyStorage());
+    }
+    
+    private String createPresignedGetUrl(String bucket, String key) {
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .responseContentDisposition("attachment") // Property define the method display. if not use, it is preview display
+                .build();
+
+        GetObjectPresignRequest getObjectPresignRequest = GetObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofMinutes(10))
+                .getObjectRequest(getObjectRequest)
+                .build();
+
+        PresignedGetObjectRequest presignedGetObjectRequest = s3Presigner.presignGetObject(getObjectPresignRequest);
+        return presignedGetObjectRequest.url().toExternalForm();
+    }
+
+    /*
     public Integer downloadObjectsToDirectory(S3TransferManager s3TransferManager, URI destinationPathURI, String bucketName) {
         // Init download session
         DirectoryDownload directoryDownload = s3TransferManager.downloadDirectory(
@@ -220,5 +259,5 @@ public class VideoServiceImpl implements VideoService {
 
         // Return the number fail file ( ex: 0 is success download, 1 is error)
         return completedDirectoryDownload.failedTransfers().size();
-    }
+    }*/
 }

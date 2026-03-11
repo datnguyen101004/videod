@@ -18,12 +18,16 @@ public class Video {
 
     @Column
     private String title;
+
     @Column
     private String description;
 
     @Enumerated(EnumType.STRING)
     @NotNull
     private Category category;
+
+    @Column
+    private String keyStorage;
 
     @Column
     private String url;

@@ -11,5 +11,4 @@ import lombok.NoArgsConstructor;
 @Builder
 public class VideoDownloadRequest {
     private Long videoId;
-    private String destinationPath;
 }

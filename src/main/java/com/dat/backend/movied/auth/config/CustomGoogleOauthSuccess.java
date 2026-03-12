@@ -1,6 +1,5 @@
 package com.dat.backend.movied.auth.config;
 
-import com.dat.backend.movied.auth.dto.AuthResponse;
 import com.dat.backend.movied.auth.entity.LoginMethod;
 import com.dat.backend.movied.auth.entity.Role;
 import com.dat.backend.movied.auth.entity.UserLogin;
@@ -69,7 +68,7 @@ public class CustomGoogleOauthSuccess implements AuthenticationSuccessHandler {
         cookie2.setPath("/");
         response.addCookie(cookie2);
 
-        String redirectUri = "http://localhost:8080/auth";
+        String redirectUri = "http://localhost:3000/home";
         response.sendRedirect(redirectUri);
     }
 }

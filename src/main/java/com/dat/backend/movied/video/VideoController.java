@@ -5,24 +5,39 @@ import com.dat.backend.movied.common.dto.ResponseApi;
 import com.dat.backend.movied.video.dto.VideoDownloadRequest;
 import com.dat.backend.movied.video.dto.VideoResponse;
 import com.dat.backend.movied.video.service.VideoService;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/v1/video")
 public class VideoController {
     private final VideoService videoService;
 
-    @PostMapping("/auth/upload")
+    @PostMapping(path = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseApi<VideoResponse> uploadVideo(@RequestPart("video") MultipartFile file,
+                                                  @Parameter(
+                                                          description = "Video metadata",
+                                                          content = @Content(mediaType = "application/json")
+                                                  )
                                                   @RequestPart("information") CreateVideoDto createVideoDto) {
         return ResponseApi.success(videoService.uploadVideo(file, createVideoDto));
     }
 
-    @PostMapping("/download")
+    @PostMapping(path = "/download")
     public ResponseApi<String> downloadVideo(@RequestBody VideoDownloadRequest videoDownloadRequest) {
         return ResponseApi.success(videoService.downloadVideo(videoDownloadRequest));
+    }
+
+    @GetMapping("/all")
+    public ResponseApi<List<VideoResponse>> getAllVideos() {
+        return ResponseApi.success(videoService.getAllVideo());
     }
 
     /*@PostMapping("/upload/async")

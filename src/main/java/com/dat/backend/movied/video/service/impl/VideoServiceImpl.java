@@ -29,6 +29,8 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -222,7 +224,24 @@ public class VideoServiceImpl implements VideoService {
         // Generate the URL for download with GET request
         return createPresignedGetUrl(properties.getBucket(), video.getKeyStorage());
     }
-    
+
+    @Override
+    public List<VideoResponse> getAllVideo() {
+        List<Video> videos = videoRepository.findAll();
+        List<VideoResponse> videoResponses = new ArrayList<>();
+        for (Video video : videos) {
+            VideoResponse videoResponse = VideoResponse.builder()
+                    .url(video.getUrl())
+                    .title(video.getTitle())
+                    .description(video.getDescription())
+                    .id(video.getId())
+                    .category(String.valueOf(video.getCategory()))
+                    .build();
+            videoResponses.add(videoResponse);
+        }
+        return videoResponses;
+    }
+
     private String createPresignedGetUrl(String bucket, String key) {
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(bucket)

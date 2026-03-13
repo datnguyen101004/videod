@@ -32,23 +32,12 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        Cookie[] cookies = request.getCookies();
-        if (cookies == null) {
-            filterChain.doFilter(request, response);
+        var authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer")){
+            filterChain.doFilter(request,response);
             return;
         }
-
-        String jwt = Arrays.stream(cookies)
-                .filter(c -> "access_token".equals(c.getName()))
-                .findFirst()
-                .map(Cookie::getValue)
-                .orElse(null);
-
-        if (jwt == null || jwt.isBlank()) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
+        var jwt = authHeader.substring(7);
         try {
             var username = jwtService.extractUsername(jwt);
             log.info("Username extracted from JWT: {}", username);

@@ -33,8 +33,8 @@ public class Video {
     private String url;
 
     @Column(
-            name = "author_id"
+            name = "author_mail"
     )
-    private String authorId;
+    private String authorEmail;
 
 }

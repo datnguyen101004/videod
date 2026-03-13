@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  db:
+    image: mysql
+    restart: unless-stopped
+    container_name: db_videod
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: videod
+    ports:
+      - "3307:3306"

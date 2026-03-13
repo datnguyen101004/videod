@@ -10,9 +10,11 @@ import java.io.IOException;
 import java.util.List;
 
 public interface VideoService {
-    public VideoResponse uploadVideo(MultipartFile file, CreateVideoDto createVideoDto);
+    public VideoResponse uploadVideo(MultipartFile file, CreateVideoDto createVideoDto, String email);
 
     String downloadVideo(VideoDownloadRequest videoDownloadRequest);
 
     List<VideoResponse> getAllVideo();
+
+    String deleteVideo(Long videoId, String email);
 }

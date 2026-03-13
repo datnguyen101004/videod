@@ -68,42 +68,7 @@ public class VideoServiceImpl implements VideoService {
 
     // Upload video to DO space
     @Override
-    public VideoResponse uploadVideo(MultipartFile file, CreateVideoDto createVideoDto) {
-        /*try {
-            String key = S3Helper.createKey(file.getOriginalFilename());
-
-            // Put video to DO via S3 api
-            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                    .bucket(properties.getBucket())
-                    .key(key)
-                    .contentType(file.getContentType())
-                    .acl(ObjectCannedACL.PUBLIC_READ)
-                    .build();
-
-            s3Client.putObject(
-                    putObjectRequest,
-                    RequestBody.fromBytes(file.getBytes())
-            );
-
-            // final url video
-            String url = S3Helper.createUrl(properties.getBucket(), key);
-
-            //TODO: implement mapper for easy maintaining
-            Video video = new Video();
-            video.setUrl(url);
-            video.setTitle(createVideoDto.getTitle());
-            video.setDescription(createVideoDto.getDescription());
-            videoRepository.save(video);
-
-            return VideoResponse.builder()
-                    .url(url)
-                    .title(video.getTitle())
-                    .description(video.getDescription())
-                    .build();
-
-        } catch (Exception e) {
-            throw new RuntimeException("Upload failed", e);
-        }*/
+    public VideoResponse uploadVideo(MultipartFile file, CreateVideoDto createVideoDto, String email) {
         try {
             // Get the enough properties
             String filename = file.getOriginalFilename();
@@ -141,6 +106,7 @@ public class VideoServiceImpl implements VideoService {
             video.setCategory(Category.valueOf(createVideoDto.getCategory().toUpperCase()));
             video.setDescription(createVideoDto.getDescription());
             video.setKeyStorage(key);
+            video.setAuthorEmail(email);
             videoRepository.save(video);
 
             return VideoResponse.builder()
@@ -242,6 +208,13 @@ public class VideoServiceImpl implements VideoService {
         return videoResponses;
     }
 
+    @Override
+    public String deleteVideo(Long videoId, String email) {
+        Video video = videoRepository.findById(videoId).orElseThrow(() -> new ResourceNotExit("Video not found"));
+        videoRepository.delete(video);
+        return "Video deleted";
+    }
+
     private String createPresignedGetUrl(String bucket, String key) {
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(bucket)
@@ -257,26 +230,4 @@ public class VideoServiceImpl implements VideoService {
         PresignedGetObjectRequest presignedGetObjectRequest = s3Presigner.presignGetObject(getObjectPresignRequest);
         return presignedGetObjectRequest.url().toExternalForm();
     }
-
-    /*
-    public Integer downloadObjectsToDirectory(S3TransferManager s3TransferManager, URI destinationPathURI, String bucketName) {
-        // Init download session
-        DirectoryDownload directoryDownload = s3TransferManager.downloadDirectory(
-                DownloadDirectoryRequest.builder()
-                        .bucket(bucketName)
-                        .destination(Paths.get(destinationPathURI))
-                        .build()
-        ); // async method
-
-        // Wait for all done
-        CompletedDirectoryDownload completedDirectoryDownload = directoryDownload.completionFuture().join();
-
-        // Handle if error occurs
-        completedDirectoryDownload.failedTransfers().forEach(
-                fail -> System.out.println("Object error: " + fail.toString())
-        );
-
-        // Return the number fail file ( ex: 0 is success download, 1 is error)
-        return completedDirectoryDownload.failedTransfers().size();
-    }*/
 }

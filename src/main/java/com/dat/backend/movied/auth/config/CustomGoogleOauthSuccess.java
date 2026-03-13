@@ -2,7 +2,7 @@ package com.dat.backend.movied.auth.config;
 
 import com.dat.backend.movied.auth.entity.LoginMethod;
 import com.dat.backend.movied.auth.entity.Role;
-import com.dat.backend.movied.auth.entity.UserLogin;
+import com.dat.backend.movied.user.entity.User;
 import com.dat.backend.movied.auth.repository.UserLoginRepository;
 import com.dat.backend.movied.auth.serivce.JwtService;
 import jakarta.servlet.ServletException;
@@ -45,30 +45,31 @@ public class CustomGoogleOauthSuccess implements AuthenticationSuccessHandler {
         String email = oAuth2User.getAttribute("email");
 
         // Create user if not exist
-        Optional<UserLogin> userLogin = userLoginRepository.findByUsername(email);
+        Optional<User> userLogin = userLoginRepository.findByEmail(email);
 
         if (userLogin.isEmpty()) {
-            UserLogin newUserLogin = new UserLogin();
-            newUserLogin.setUsername(email);
-            newUserLogin.setRole(Role.USER);
-            newUserLogin.setLoginMethod(LoginMethod.OAUTH);
-            userLoginRepository.save(newUserLogin);
+            User newUser = new User();
+            newUser.setEmail(email);
+            newUser.setRole(Role.USER);
+            newUser.setLoginMethod(LoginMethod.OAUTH);
+            userLoginRepository.save(newUser);
         }
 
         // Generate token
         String accessToken = jwtService.generateAccessToken(email);
         String refreshToken = jwtService.generateRefreshToken(email);
 
-        // Set cookie
-        Cookie cookie1 = new Cookie("access_token", accessToken);
-        cookie1.setPath("/");
-        response.addCookie(cookie1);
+        response.addHeader("Authorization", "Bearer " + accessToken);
 
-        Cookie cookie2 = new Cookie("refresh_token", refreshToken);
-        cookie2.setPath("/");
-        response.addCookie(cookie2);
+        Cookie refreshCookie = new Cookie("refresh_token", refreshToken);
+        refreshCookie.setHttpOnly(true);
+        refreshCookie.setSecure(false);
+        refreshCookie.setPath("/");
+        refreshCookie.setMaxAge(3 * 24 * 60 * 60); // 3 ngày
 
-        String redirectUri = "http://localhost:3000/home";
+        response.addCookie(refreshCookie);
+
+        String redirectUri = "http://localhost:3000/home?status=success";
         response.sendRedirect(redirectUri);
     }
 }

@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,14 +22,16 @@ import java.util.List;
 public class VideoController {
     private final VideoService videoService;
 
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @PostMapping(path = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseApi<VideoResponse> uploadVideo(@RequestPart("video") MultipartFile file,
                                                   @Parameter(
                                                           description = "Video metadata",
                                                           content = @Content(mediaType = "application/json")
                                                   )
-                                                  @RequestPart("information") CreateVideoDto createVideoDto) {
-        return ResponseApi.success(videoService.uploadVideo(file, createVideoDto));
+                                                  @RequestPart("information") CreateVideoDto createVideoDto,
+                                                  Authentication authentication) {
+        return ResponseApi.success(videoService.uploadVideo(file, createVideoDto, authentication.getName()));
     }
 
     @PostMapping(path = "/download")
@@ -38,6 +42,13 @@ public class VideoController {
     @GetMapping("/all")
     public ResponseApi<List<VideoResponse>> getAllVideos() {
         return ResponseApi.success(videoService.getAllVideo());
+    }
+
+    @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseApi<String> deleteVideo(@RequestParam("videoId") Long videoId,
+                                           Authentication authentication) {
+        return ResponseApi.success(videoService.deleteVideo(videoId, authentication.getName()));
     }
 
     /*@PostMapping("/upload/async")

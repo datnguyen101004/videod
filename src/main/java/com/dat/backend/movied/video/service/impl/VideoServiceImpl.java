@@ -2,9 +2,7 @@ package com.dat.backend.movied.video.service.impl;
 
 import com.dat.backend.movied.common.config.CustomThread;
 import com.dat.backend.movied.video.config.S3Properties;
-import com.dat.backend.movied.video.dto.CreateVideoDto;
-import com.dat.backend.movied.video.dto.VideoDownloadRequest;
-import com.dat.backend.movied.video.dto.VideoResponse;
+import com.dat.backend.movied.video.dto.*;
 import com.dat.backend.movied.video.entity.Category;
 import com.dat.backend.movied.video.entity.Video;
 import com.dat.backend.movied.video.exception.ResourceNotExit;
@@ -12,6 +10,8 @@ import com.dat.backend.movied.video.exception.VideoUploadException;
 import com.dat.backend.movied.video.repository.VideoRepository;
 import com.dat.backend.movied.video.service.VideoService;
 import com.dat.backend.movied.video.util.S3Helper;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -21,6 +21,8 @@ import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedUploadPartRequest;
+import software.amazon.awssdk.services.s3.presigner.model.UploadPartPresignRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.*;
 
@@ -29,22 +31,27 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class VideoServiceImpl implements VideoService {
     private final VideoRepository videoRepository;
     private final S3Properties properties;
-    private static final int PART_SIZE = 5 * 1024 * 1024; // 5MB
+    private static final long CHUNK_SIZE = 10 * 1024 * 1024; // 10MB
     private final CustomThread customThread;
     private static final long FILE_THRESHOLD = 200 * 1024 * 1024; // 200MB
     private final S3TransferManager s3TransferManager;
     private final ExecutorService executor;
     private final S3Presigner s3Presigner;
+    private final S3Client s3Client;
 
     // Note: enable multipart
     private final S3AsyncClient s3AsyncClient;
@@ -64,6 +71,7 @@ public class VideoServiceImpl implements VideoService {
         this.s3TransferManager = s3TransferManager;
         this.executor = executor;
         this.s3Presigner = s3Presigner;
+        this.s3Client = s3Client;
     }
 
     // Upload video to DO space
@@ -215,6 +223,110 @@ public class VideoServiceImpl implements VideoService {
         return "Video deleted";
     }
 
+    @Override
+    public MultipartInitiateResponse initiateMultipartUpload(UploadInitiateRequest request) {
+        String key = S3Helper.createKey(request.getFilename(), request.getCategory());
+        String bucket = properties.getBucket();
+
+        CreateMultipartUploadRequest createRequest = CreateMultipartUploadRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .acl(ObjectCannedACL.PUBLIC_READ)
+                .contentType(request.getContentType())
+                .build();
+
+        CreateMultipartUploadResponse response = s3Client.createMultipartUpload(createRequest);
+        return new MultipartInitiateResponse(
+                response.uploadId(),
+                key,
+                CHUNK_SIZE
+        );
+    }
+
+    @Override
+    public String getPresignedPartUrl(String key, String uploadId, int partNumber) {
+
+        String bucket = properties.getBucket();
+
+        UploadPartRequest uploadPartRequest = UploadPartRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .uploadId(uploadId)
+                .partNumber(partNumber)
+                .build();
+
+        UploadPartPresignRequest presignRequest =
+                UploadPartPresignRequest.builder()
+                        .signatureDuration(Duration.ofHours(1)) // Longer for large parts
+                        .uploadPartRequest(uploadPartRequest)
+                        .build();
+
+        PresignedUploadPartRequest presignedRequest =
+                s3Presigner.presignUploadPart(presignRequest);
+
+        return presignedRequest.url().toString();
+    }
+
+    @Override
+    public CompleteMultipartUploadResponse  completeMultipartUpload(CompleteMultipartRequest completeMultipartRequest) {
+
+        String key = completeMultipartRequest.getKey();
+        String uploadId = completeMultipartRequest.getUploadId();
+        List<CompletedPartDto> parts = completeMultipartRequest.getParts();
+
+        List<CompletedPart> completedParts = parts.stream()
+                .map(p -> CompletedPart.builder()
+                        .partNumber(p.getPartNumber())
+                        .eTag(p.getETag())
+                        .build())
+                .sorted((a, b) -> Integer.compare(a.partNumber(), b.partNumber()))
+                .collect(Collectors.toList());
+
+        CompletedMultipartUpload completedUpload =
+                CompletedMultipartUpload.builder()
+                        .parts(completedParts)
+                        .build();
+
+        CompleteMultipartUploadRequest completeRequest =
+                CompleteMultipartUploadRequest.builder()
+                        .bucket(properties.getBucket())
+                        .key(key)
+                        .uploadId(uploadId)
+                        .multipartUpload(completedUpload)
+                        .build();
+        System.out.println("Upload successful");
+
+        // Get video information
+        String title = completeMultipartRequest.getTitle();
+        String description = completeMultipartRequest.getDescription();
+        String category = completeMultipartRequest.getCategory();
+        String url = S3Helper.finalUrl(key, properties.getBucket());
+
+        Video video = new Video();
+        video.setTitle(title);
+        video.setDescription(description);
+        video.setCategory(Category.valueOf(category.toUpperCase()));
+        video.setUrl(url);
+        videoRepository.save(video);
+
+        return s3Client.completeMultipartUpload(completeRequest);
+    }
+
+    @Override
+    public String abortMultipartUpload(AbortVideoRequest abortVideoRequest) {
+
+        AbortMultipartUploadRequest abortMultipartUploadRequest =
+                AbortMultipartUploadRequest.builder()
+                        .key(abortVideoRequest.getKey())
+                        .bucket(properties.getBucket())
+                        .uploadId(abortVideoRequest.getUploadId())
+                        .build();
+
+        s3Client.abortMultipartUpload(abortMultipartUploadRequest);
+
+        return "Successfully aborted";
+    }
+
     private String createPresignedGetUrl(String bucket, String key) {
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(bucket)
@@ -229,5 +341,49 @@ public class VideoServiceImpl implements VideoService {
 
         PresignedGetObjectRequest presignedGetObjectRequest = s3Presigner.presignGetObject(getObjectPresignRequest);
         return presignedGetObjectRequest.url().toExternalForm();
+    }
+
+    // Cron job clear orphaned upload
+    // Run cleanup daily at 2 AM
+    @Scheduled(cron = "0 0 2 * * ?")
+    public void cleanupAbandonedUploads() {
+        log.info("Starting cleanup of abandoned multipart uploads");
+
+        ListMultipartUploadsRequest listRequest = ListMultipartUploadsRequest.builder()
+                .bucket(properties.getBucket())
+                .build();
+
+        ListMultipartUploadsResponse response = s3Client.listMultipartUploads(listRequest);
+        List<MultipartUpload> uploads = response.uploads();
+
+        Instant oneDayAgo = Instant.now().minus(1, ChronoUnit.DAYS);
+
+        int abortedCount = 0;
+        for (MultipartUpload upload : uploads) {
+            if (upload.initiated().isBefore(oneDayAgo)) {
+                try {
+                    AbortMultipartUploadRequest abortRequest =
+                            AbortMultipartUploadRequest.builder()
+                                    .bucket(properties.getBucket())
+                                    .key(upload.key())
+                                    .uploadId(upload.uploadId())
+                                    .build();
+
+                    s3Client.abortMultipartUpload(abortRequest);
+                    abortedCount++;
+                    log.info("Aborted abandoned upload: {} (initiated: {})",
+                            upload.key(), upload.initiated());
+                } catch (Exception e) {
+                    log.error("Failed to abort upload: {}", upload.key(), e);
+                }
+            }
+        }
+
+        log.info("Cleanup completed. Aborted {} uploads", abortedCount);
+    }
+
+    public String trigger() {
+        cleanupAbandonedUploads();
+        return "Trigger successful";
     }
 }

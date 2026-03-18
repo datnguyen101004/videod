@@ -1,12 +1,9 @@
 package com.dat.backend.movied.video.service;
 
-import com.dat.backend.movied.video.dto.CreateVideoDto;
-import com.dat.backend.movied.video.dto.VideoDownloadRequest;
-import com.dat.backend.movied.video.dto.VideoResponse;
+import com.dat.backend.movied.video.dto.*;
 import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 
-import java.io.IOException;
 import java.util.List;
 
 public interface VideoService {
@@ -17,4 +14,14 @@ public interface VideoService {
     List<VideoResponse> getAllVideo();
 
     String deleteVideo(Long videoId, String email);
+
+    MultipartInitiateResponse initiateMultipartUpload(UploadInitiateRequest uploadInitiateRequest);
+
+    String getPresignedPartUrl(String key, String uploadId, int partNumber);
+
+    CompleteMultipartUploadResponse completeMultipartUpload(CompleteMultipartRequest completeMultipartRequest);
+
+    String abortMultipartUpload(AbortVideoRequest abortVideoRequest);
+
+    String trigger();
 }

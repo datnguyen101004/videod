@@ -1,18 +1,18 @@
 package com.dat.backend.movied.video;
 
-import com.dat.backend.movied.video.dto.CreateVideoDto;
+import com.dat.backend.movied.video.dto.*;
 import com.dat.backend.movied.common.dto.ResponseApi;
-import com.dat.backend.movied.video.dto.VideoDownloadRequest;
-import com.dat.backend.movied.video.dto.VideoResponse;
 import com.dat.backend.movied.video.service.VideoService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 
 import java.util.List;
 
@@ -51,13 +51,41 @@ public class VideoController {
         return ResponseApi.success(videoService.deleteVideo(videoId, authentication.getName()));
     }
 
-    /*@PostMapping("/upload/async")
-    public PutObjectResponse uploadVideoAsync(@RequestPart("video") MultipartFile file) throws IOException {
-        return videoService.asyncClientMultipartUpload(file);
+    @PostMapping("/upload/multipart/initiate")
+    public ResponseEntity<MultipartInitiateResponse> initiateMultipart(
+            @RequestBody UploadInitiateRequest request) {
+        return ResponseEntity.ok(videoService.initiateMultipartUpload(request));
     }
 
-    @PostMapping("/upload/multipart")
-    public String uploadMultipart(@RequestPart("video") MultipartFile file) throws IOException {
-        return videoService.multipartUpload(file);
-    }*/
+    @PostMapping("/upload/multipart/part-url")
+    public ResponseEntity<PartUrlResponse> getPartUrl(
+            @RequestBody PartUrlRequest request) {
+
+        String url = videoService.getPresignedPartUrl(
+                request.getKey(),
+                request.getUploadId(),
+                request.getPartNumber()
+        );
+
+        return ResponseEntity.ok(new PartUrlResponse(url));
+    }
+
+    @PostMapping("/upload/multipart/complete")
+    public ResponseEntity<CompleteMultipartUploadResponse> completeMultipart(
+            @RequestBody CompleteMultipartRequest request) {
+
+        return ResponseEntity.ok(videoService.completeMultipartUpload(request));
+    }
+
+    @PostMapping("/abort")
+    public ResponseEntity<String> abortMultipartUpload(
+            @RequestBody AbortVideoRequest abortVideoRequest
+    ) {
+        return ResponseEntity.ok(videoService.abortMultipartUpload(abortVideoRequest));
+    }
+
+    @PostMapping("/trigger")
+    public ResponseEntity<String> triggerVideo() {
+        return ResponseEntity.ok(videoService.trigger());
+    }
 }

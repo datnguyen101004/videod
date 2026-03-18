@@ -3,6 +3,10 @@ version: '3'
 services:
   db:
     image: mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      retries: 5
     restart: unless-stopped
     container_name: db_videod
     environment:
@@ -10,3 +14,34 @@ services:
       MYSQL_DATABASE: videod
     ports:
       - "3307:3306"
+    networks:
+      - videod_network
+    volumes:
+      - videod_data:/var/lib/mysql
+
+  app:
+    build: .
+    container_name: videod_be
+    ports:
+      - '8081:8080'
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/videod
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      DO_ACCESS_KEY_ID: ${DO_ACCESS_KEY_ID}
+      DO_SECRET_KEY: ${DO_SECRET_KEY}
+      GG_CLIENT_ID: ${GG_CLIENT_ID}
+      GG_CLIENT_SECRET: ${GG_CLIENT_SECRET}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - videod_network
+
+volumes:
+  videod_data:
+
+networks:
+  videod_network:
+    driver: bridge

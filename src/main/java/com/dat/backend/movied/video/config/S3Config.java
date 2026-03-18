@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -13,6 +15,7 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
 import java.net.URI;
+import java.net.http.HttpClient;
 import java.time.Duration;
 
 @Configuration
@@ -44,15 +47,23 @@ public class S3Config {
     }
 
     @Bean
-    public S3Client s3ClientSync(
+    public S3Client s3Client(
             AwsCredentialsProvider credentialsProvider,
             Region region,
             URI endpoint) {
+        ApacheHttpClient httpClient = (ApacheHttpClient) ApacheHttpClient.builder()
+                .connectionTimeout(Duration.ofSeconds(5))
+                .socketTimeout(Duration.ofSeconds(5))
+                .maxConnections(50) // Allow multiple concurrent connections
+                .connectionTimeToLive(Duration.ofMinutes(1))
+                .useIdleConnectionReaper(true)
+                .build();
 
         return S3Client.builder()
                 .region(region)
                 .endpointOverride(endpoint)
                 .credentialsProvider(credentialsProvider)
+                .httpClient(httpClient)
                 .build();
     }
 
@@ -68,6 +79,7 @@ public class S3Config {
                         .writeTimeout(Duration.ofSeconds(60))
                         .readTimeout(Duration.ofSeconds(60))
                         .maxConcurrency(50)
+                        .connectionTimeToLive(Duration.ofMinutes(1))
                         .build();
 
         return S3AsyncClient.builder()

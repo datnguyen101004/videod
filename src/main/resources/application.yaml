@@ -2,7 +2,7 @@ spring:
   application:
     name: MovieD
   datasource:
-    url: jdbc:mysql://localhost:3307/videod?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh&useLegacyDatetimeCode=false
+    url: jdbc:mysql://localhost:3306/videod
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -26,7 +26,7 @@ do:
   space:
     bucket: videod
     region: sgp1
-    url: ${DO_STORAGE_URL}
+    url: sgp1.digitaloceanspaces.com
     access_key: ${DO_ACCESS_KEY_ID}
     secret_key: ${DO_SECRET_KEY}
 

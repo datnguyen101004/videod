@@ -13,7 +13,7 @@ import software.amazon.awssdk.annotations.NotNull;
 @AllArgsConstructor
 public class Video {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     @Column

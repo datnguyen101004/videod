@@ -14,7 +14,7 @@ public class S3Helper {
 
     public String createKey(String filename, String category) {
         String extension = filename.contains(".") ? filename.substring(filename.lastIndexOf(".")) : filename;
-        return category + "/" + UUID.randomUUID() + extension;
+        return category.toUpperCase() + "/" + UUID.randomUUID() + extension;
     }
 
     public String finalUrl(String key, String bucket) {

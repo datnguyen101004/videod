@@ -60,6 +60,18 @@
             <scope>compile</scope>
         </dependency>
 
+        <!-- Actuator + Micrometer -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- Export sang Prometheus -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+
         <!-- Source: https://mvnrepository.com/artifact/software.amazon.awssdk/netty-nio-client -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>

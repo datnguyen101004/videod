@@ -3,15 +3,11 @@ package com.dat.backend.movied.video;
 import com.dat.backend.movied.video.dto.*;
 import com.dat.backend.movied.common.dto.ResponseApi;
 import com.dat.backend.movied.video.service.VideoService;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 
 import java.util.List;
@@ -23,15 +19,18 @@ public class VideoController {
     private final VideoService videoService;
 
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    @PostMapping(path = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseApi<VideoResponse> uploadVideo(@RequestPart("video") MultipartFile file,
-                                                  @Parameter(
-                                                          description = "Video metadata",
-                                                          content = @Content(mediaType = "application/json")
-                                                  )
-                                                  @RequestPart("information") CreateVideoDto createVideoDto,
+    @PostMapping(path = "/upload/small")
+    public ResponseApi<PresignedUrlResponse> createPresignUrlSmallVideo(@RequestBody PresignUploadRequest presignUploadRequest,
                                                   Authentication authentication) {
-        return ResponseApi.success(videoService.uploadVideo(file, createVideoDto, authentication.getName()));
+        return ResponseApi.success(videoService.createPresignUrlSmallVideo(presignUploadRequest, authentication.getName()));
+    }
+
+    @PostMapping("/verify")
+    public ResponseEntity<String> verifyAndSaveToDatabase(
+            @RequestBody VerifyUploadPresign verifyUploadPresign,
+            Authentication authentication
+    )  {
+        return ResponseEntity.ok(videoService.verifyAndSaveToDatabase(verifyUploadPresign, authentication.getName()));
     }
 
     @PostMapping(path = "/download")
@@ -72,16 +71,17 @@ public class VideoController {
 
     @PostMapping("/upload/multipart/complete")
     public ResponseEntity<CompleteMultipartUploadResponse> completeMultipart(
-            @RequestBody CompleteMultipartRequest request) {
+            @RequestBody CompleteMultipartRequest request,
+            Authentication authentication) {
 
-        return ResponseEntity.ok(videoService.completeMultipartUpload(request));
+        return ResponseEntity.ok(videoService.completeMultipartUpload(request, authentication.getName()));
     }
 
     @PostMapping("/abort")
     public ResponseEntity<String> abortMultipartUpload(
-            @RequestBody AbortVideoRequest abortVideoRequest
+            @RequestBody AbortPartRequest abortPartRequest
     ) {
-        return ResponseEntity.ok(videoService.abortMultipartUpload(abortVideoRequest));
+        return ResponseEntity.ok(videoService.abortMultipartUpload(abortPartRequest));
     }
 
     @PostMapping("/trigger")

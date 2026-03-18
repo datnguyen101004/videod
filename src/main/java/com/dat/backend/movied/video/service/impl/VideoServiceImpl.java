@@ -1,6 +1,5 @@
 package com.dat.backend.movied.video.service.impl;
 
-import com.dat.backend.movied.common.config.CustomThread;
 import com.dat.backend.movied.video.config.S3Properties;
 import com.dat.backend.movied.video.dto.*;
 import com.dat.backend.movied.video.entity.Category;
@@ -13,31 +12,16 @@ import com.dat.backend.movied.video.util.S3Helper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedUploadPartRequest;
-import software.amazon.awssdk.services.s3.presigner.model.UploadPartPresignRequest;
-import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.model.*;
+import software.amazon.awssdk.services.s3.presigner.model.*;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,42 +30,28 @@ public class VideoServiceImpl implements VideoService {
     private final VideoRepository videoRepository;
     private final S3Properties properties;
     private static final long CHUNK_SIZE = 10 * 1024 * 1024; // 10MB
-    private final CustomThread customThread;
-    private static final long FILE_THRESHOLD = 200 * 1024 * 1024; // 200MB
-    private final S3TransferManager s3TransferManager;
-    private final ExecutorService executor;
     private final S3Presigner s3Presigner;
     private final S3Client s3Client;
 
-    // Note: enable multipart
-    private final S3AsyncClient s3AsyncClient;
-
     public VideoServiceImpl(VideoRepository videoRepository,
                             S3Client s3Client,
-                            S3AsyncClient s3AsyncClient,
                             S3Properties properties,
-                            CustomThread customThread,
-                            S3TransferManager s3TransferManager,
-                            ExecutorService executor,
                             S3Presigner s3Presigner) {
         this.videoRepository = videoRepository;
-        this.s3AsyncClient = s3AsyncClient;
         this.properties = properties;
-        this.customThread = customThread;
-        this.s3TransferManager = s3TransferManager;
-        this.executor = executor;
         this.s3Presigner = s3Presigner;
         this.s3Client = s3Client;
     }
 
     // Upload video to DO space
     @Override
-    public VideoResponse uploadVideo(MultipartFile file, CreateVideoDto createVideoDto, String email) {
+    public PresignedUrlResponse createPresignUrlSmallVideo(PresignUploadRequest presignUploadRequest, String email) {
         try {
+            log.info("Uploading video...");
             // Get the enough properties
-            String filename = file.getOriginalFilename();
-            long fileSize = file.getSize();
-            String category = createVideoDto.getCategory();
+            String filename = presignUploadRequest.getFilename();
+            long fileSize = presignUploadRequest.getFileSize();
+            String category = presignUploadRequest.getCategory();
 
             // Check bad case
             if (filename == null) {
@@ -96,92 +66,33 @@ public class VideoServiceImpl implements VideoService {
             String key = S3Helper.createKey(filename, category);
             String bucket = properties.getBucket();
 
-            // Check file size for choosing reasonable method uploading
-            String url;
-            if (fileSize < FILE_THRESHOLD) {
-                // Choosing async upload method
-                url = asyncUpload(file, key, bucket);
-            }
-            else {
-                // Choosing async multipart upload method
-                url = asyncMultipartUpload(file, key, bucket);
-            }
+            PutObjectRequest putObjectRequest =
+                    PutObjectRequest.builder()
+                            .key(key)
+                            .bucket(bucket)
+                            .contentType(presignUploadRequest.getContentType())
+                            .contentLength(fileSize)
+                            .acl(ObjectCannedACL.PUBLIC_READ)
+                            .build();
 
-            // Store to db
-            Video video = new Video();
-            video.setUrl(url);
-            video.setTitle(createVideoDto.getTitle());
-            video.setCategory(Category.valueOf(createVideoDto.getCategory().toUpperCase()));
-            video.setDescription(createVideoDto.getDescription());
-            video.setKeyStorage(key);
-            video.setAuthorEmail(email);
-            videoRepository.save(video);
+            PutObjectPresignRequest presignRequest =
+                    PutObjectPresignRequest.builder()
+                            .signatureDuration(Duration.ofMinutes(15))
+                            .putObjectRequest(putObjectRequest)
+                            .build();
 
-            return VideoResponse.builder()
+            PresignedPutObjectRequest presignedPutObjectRequest =
+                    s3Presigner.presignPutObject(presignRequest);
+
+            String url = presignedPutObjectRequest.url().toString();
+
+            log.info("Presign url: {}", url);
+
+            return PresignedUrlResponse.builder()
                     .url(url)
-                    .title(video.getTitle())
-                    .description(video.getDescription())
-                    .id(video.getId())
-                    .category(String.valueOf(video.getCategory()))
+                    .key(key)
                     .build();
 
-        }
-        catch (Exception e) {
-            throw new VideoUploadException(e.getMessage());
-        }
-    }
-
-    // Upload video to DO space with sync client API and multipart API
-    public String asyncMultipartUpload(MultipartFile file, String key, String bucket) throws IOException {
-        String ext = Objects.requireNonNull(file.getOriginalFilename())
-                .substring(file.getOriginalFilename().lastIndexOf("."));
-        Path tempFile = Files.createTempFile("upload", ext);
-        try {
-            file.transferTo(tempFile);
-
-            FileUpload upload = s3TransferManager.uploadFile(
-                    UploadFileRequest.builder()
-                            .putObjectRequest(p -> p
-                                    .bucket(bucket)
-                                    .key(key)
-                                    .acl(ObjectCannedACL.PUBLIC_READ)
-                                    .contentType(file.getContentType()))
-                            .source(tempFile)
-                            .build()
-            );
-
-            upload.completionFuture().join();
-
-            return S3Helper.finalUrl(key, bucket);
-        }
-        finally {
-            Files.deleteIfExists(tempFile);
-        }
-    }
-
-    public String asyncUpload(MultipartFile file, String key, String bucket) {
-
-        try {
-
-            InputStream inputStream = file.getInputStream();
-
-            AsyncRequestBody body =
-                    AsyncRequestBody.fromInputStream(inputStream, file.getSize(), executor);
-
-            CompletableFuture<PutObjectResponse> responseFuture =
-                    s3AsyncClient.putObject(
-                            r -> r.bucket(properties.getBucket())
-                                    .contentType(file.getContentType())
-                                    .acl(ObjectCannedACL.PUBLIC_READ)
-                                    .key(key),
-                            body
-                    ).exceptionally(e -> {
-                        throw new VideoUploadException(e.getMessage());
-                    });
-
-            PutObjectResponse response = responseFuture.join();
-
-            return S3Helper.finalUrl(key, bucket);
         }
         catch (Exception e) {
             throw new VideoUploadException(e.getMessage());
@@ -268,7 +179,8 @@ public class VideoServiceImpl implements VideoService {
     }
 
     @Override
-    public CompleteMultipartUploadResponse  completeMultipartUpload(CompleteMultipartRequest completeMultipartRequest) {
+    public CompleteMultipartUploadResponse  completeMultipartUpload(CompleteMultipartRequest completeMultipartRequest,
+                                                                    String email) {
 
         String key = completeMultipartRequest.getKey();
         String uploadId = completeMultipartRequest.getUploadId();
@@ -307,19 +219,20 @@ public class VideoServiceImpl implements VideoService {
         video.setDescription(description);
         video.setCategory(Category.valueOf(category.toUpperCase()));
         video.setUrl(url);
+        video.setAuthorEmail(email);
         videoRepository.save(video);
 
         return s3Client.completeMultipartUpload(completeRequest);
     }
 
     @Override
-    public String abortMultipartUpload(AbortVideoRequest abortVideoRequest) {
+    public String abortMultipartUpload(AbortPartRequest abortPartRequest) {
 
         AbortMultipartUploadRequest abortMultipartUploadRequest =
                 AbortMultipartUploadRequest.builder()
-                        .key(abortVideoRequest.getKey())
+                        .key(abortPartRequest.getKey())
                         .bucket(properties.getBucket())
-                        .uploadId(abortVideoRequest.getUploadId())
+                        .uploadId(abortPartRequest.getUploadId())
                         .build();
 
         s3Client.abortMultipartUpload(abortMultipartUploadRequest);
@@ -385,5 +298,33 @@ public class VideoServiceImpl implements VideoService {
     public String trigger() {
         cleanupAbandonedUploads();
         return "Trigger successful";
+    }
+
+    @Override
+    public String verifyAndSaveToDatabase(VerifyUploadPresign verifyUploadPresign, String name) {
+        String key = verifyUploadPresign.getKey();
+
+        try {
+            // Verify exist file in s3
+            HeadObjectRequest headObjectRequest = HeadObjectRequest.builder()
+                    .bucket(properties.getBucket())
+                    .key(key)
+                    .build();
+
+            s3Client.headObject(headObjectRequest);
+
+            // Store to db
+            Video video = new Video();
+            video.setTitle(verifyUploadPresign.getTitle());
+            video.setUrl(S3Helper.finalUrl(key, properties.getBucket()));
+            video.setDescription(verifyUploadPresign.getDescription());
+            video.setCategory(Category.valueOf(verifyUploadPresign.getCategory().toUpperCase()));
+            video.setAuthorEmail(verifyUploadPresign.getAuthor());
+            videoRepository.save(video);
+            return "Successfully";
+        }
+        catch (Exception e) {
+            throw new RuntimeException("Verify exist file failed");
+        }
     }
 }

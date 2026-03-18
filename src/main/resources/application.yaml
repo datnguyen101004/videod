@@ -21,6 +21,14 @@ spring:
             client-id: ${GG_CLIENT_ID}
             client-secret: ${GG_CLIENT_SECRET}
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus,health,info
+  endpoint:
+    prometheus:
+      enable: true
 
 do:
   space:

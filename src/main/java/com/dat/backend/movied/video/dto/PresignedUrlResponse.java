@@ -9,8 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CreateVideoDto {
-    private String title;
-    private String description;
-    private String category;
+public class PresignedUrlResponse {
+    private String url;
+    private String key;
 }

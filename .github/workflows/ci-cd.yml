@@ -64,6 +64,14 @@ jobs:
         run: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
+      - name: Down docker compose
+        run: docker compose down
+        env:
+          DO_ACCESS_KEY_ID: ${{ secrets.DO_ACCESS_KEY_ID }}
+          DO_SECRET_KEY: ${{ secrets.DO_SECRET_KEY }}
+          GG_CLIENT_ID: ${{ secrets.GG_CLIENT_ID }}
+          GG_CLIENT_SECRET: ${{ secrets.GG_CLIENT_SECRET }}
+
       - name: Deploy with docker-compose
         run: docker compose up -d
         env:

@@ -20,7 +20,7 @@ services:
       - videod_data:/var/lib/mysql
 
   app:
-    build: .
+    image: datnguyen10102004/videod:${IMAGE_TAG:-latest}
     container_name: videod_be
     ports:
       - '8081:8080'

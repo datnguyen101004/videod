@@ -76,3 +76,4 @@ jobs:
           DO_SECRET_KEY: ${{ secrets.DO_SECRET_KEY }}
           GG_CLIENT_ID: ${{ secrets.GG_CLIENT_ID }}
           GG_CLIENT_SECRET: ${{ secrets.GG_CLIENT_SECRET }}
+          FE_URL: "https://videod.me"

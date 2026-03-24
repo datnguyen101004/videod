@@ -24,6 +24,8 @@ spring:
 server:
   forward-headers-strategy: framework
 
+fe_url: ${FE_URL:http://localhost:3000}
+
 management:
   endpoints:
     web:

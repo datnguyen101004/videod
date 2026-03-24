@@ -9,6 +9,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -22,6 +23,8 @@ import java.util.Optional;
 public class CustomGoogleOauthSuccess implements AuthenticationSuccessHandler {
     private final JwtService jwtService;
     private final UserLoginRepository userLoginRepository;
+    @Value("${fe_url}")
+    private String feUrl;
 
     public CustomGoogleOauthSuccess(JwtService jwtService,
                                     UserLoginRepository userLoginRepository) {
@@ -69,7 +72,7 @@ public class CustomGoogleOauthSuccess implements AuthenticationSuccessHandler {
 
         response.addCookie(refreshCookie);
 
-        String redirectUri = "http://localhost:3000/home?status=success";
+        String redirectUri = feUrl + "/home?status=success";
         response.sendRedirect(redirectUri);
     }
 }

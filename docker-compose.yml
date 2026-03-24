@@ -32,6 +32,7 @@ services:
       DO_SECRET_KEY: ${DO_SECRET_KEY}
       GG_CLIENT_ID: ${GG_CLIENT_ID}
       GG_CLIENT_SECRET: ${GG_CLIENT_SECRET}
+      FE_URL: ${FE_URL}
     restart: unless-stopped
     depends_on:
       db:

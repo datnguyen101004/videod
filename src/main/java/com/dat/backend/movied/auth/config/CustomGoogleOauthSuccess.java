@@ -65,14 +65,14 @@ public class CustomGoogleOauthSuccess implements AuthenticationSuccessHandler {
         response.addHeader("Authorization", "Bearer " + accessToken);
 
         Cookie refreshCookie = new Cookie("refresh_token", refreshToken);
-        refreshCookie.setHttpOnly(true);
+        refreshCookie.setHttpOnly(false);
         refreshCookie.setSecure(false);
         refreshCookie.setPath("/");
         refreshCookie.setMaxAge(3 * 24 * 60 * 60); // 3 ngày
 
         response.addCookie(refreshCookie);
 
-        String redirectUri = feUrl + "/home?status=success";
+        String redirectUri = feUrl + "/home";
         response.sendRedirect(redirectUri);
     }
 }

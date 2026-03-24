@@ -21,6 +21,9 @@ spring:
             client-id: ${GG_CLIENT_ID}
             client-secret: ${GG_CLIENT_SECRET}
 
+server:
+  forward-headers-strategy: framework
+
 management:
   endpoints:
     web:

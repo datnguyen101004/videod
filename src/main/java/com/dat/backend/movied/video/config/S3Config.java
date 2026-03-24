@@ -60,7 +60,6 @@ public class S3Config {
         return S3Client.builder()
                 .region(region)
                 .endpointOverride(endpoint)
-                .accelerate(true)
                 .credentialsProvider(credentialsProvider)
                 .httpClient(httpClient)
                 .build();

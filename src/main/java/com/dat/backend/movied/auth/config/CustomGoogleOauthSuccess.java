@@ -62,8 +62,6 @@ public class CustomGoogleOauthSuccess implements AuthenticationSuccessHandler {
         String accessToken = jwtService.generateAccessToken(email);
         String refreshToken = jwtService.generateRefreshToken(email);
 
-        response.addHeader("Authorization", "Bearer " + accessToken);
-
         Cookie refreshCookie = new Cookie("refresh_token", refreshToken);
         refreshCookie.setHttpOnly(false);
         refreshCookie.setSecure(false);
@@ -72,7 +70,7 @@ public class CustomGoogleOauthSuccess implements AuthenticationSuccessHandler {
 
         response.addCookie(refreshCookie);
 
-        String redirectUri = feUrl + "/home";
+        String redirectUri = feUrl + "/login/success?token=" + accessToken;
         response.sendRedirect(redirectUri);
     }
 }

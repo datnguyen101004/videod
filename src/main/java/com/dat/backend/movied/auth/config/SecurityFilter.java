@@ -63,6 +63,11 @@ public class SecurityFilter {
                                 "/swagger-ui/**",
                                 "/webjars/**",
                                 "/swagger-ui.html",
+                                "/health/**",
+                                "/prometheus/**",
+                                "/info/**",
+                                "/metrics/**",
+                                "/actuator/**",
                                 "/api/v1/video/all").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception

@@ -1,5 +1,6 @@
 package com.dat.backend.movied.video.service.impl;
 
+import com.dat.backend.movied.common.config.MicrometerConfig;
 import com.dat.backend.movied.video.config.S3Properties;
 import com.dat.backend.movied.video.dto.*;
 import com.dat.backend.movied.video.entity.Category;
@@ -32,15 +33,18 @@ public class VideoServiceImpl implements VideoService {
     private static final long CHUNK_SIZE = 10 * 1024 * 1024; // 10MB
     private final S3Presigner s3Presigner;
     private final S3Client s3Client;
+    private final MicrometerConfig micrometerConfig;
 
     public VideoServiceImpl(VideoRepository videoRepository,
                             S3Client s3Client,
                             S3Properties properties,
-                            S3Presigner s3Presigner) {
+                            S3Presigner s3Presigner,
+                            MicrometerConfig micrometerConfig) {
         this.videoRepository = videoRepository;
         this.properties = properties;
         this.s3Presigner = s3Presigner;
         this.s3Client = s3Client;
+        this.micrometerConfig = micrometerConfig;
     }
 
     // Upload video to DO space
@@ -182,47 +186,55 @@ public class VideoServiceImpl implements VideoService {
     public CompleteMultipartUploadResponse  completeMultipartUpload(CompleteMultipartRequest completeMultipartRequest,
                                                                     String email) {
 
-        String key = completeMultipartRequest.getKey();
-        String uploadId = completeMultipartRequest.getUploadId();
-        List<CompletedPartDto> parts = completeMultipartRequest.getParts();
+        try {
+            String key = completeMultipartRequest.getKey();
+            String uploadId = completeMultipartRequest.getUploadId();
+            List<CompletedPartDto> parts = completeMultipartRequest.getParts();
 
-        List<CompletedPart> completedParts = parts.stream()
-                .map(p -> CompletedPart.builder()
-                        .partNumber(p.getPartNumber())
-                        .eTag(p.getETag())
-                        .build())
-                .sorted((a, b) -> Integer.compare(a.partNumber(), b.partNumber()))
-                .collect(Collectors.toList());
+            List<CompletedPart> completedParts = parts.stream()
+                    .map(p -> CompletedPart.builder()
+                            .partNumber(p.getPartNumber())
+                            .eTag(p.getETag())
+                            .build())
+                    .sorted((a, b) -> Integer.compare(a.partNumber(), b.partNumber()))
+                    .collect(Collectors.toList());
 
-        CompletedMultipartUpload completedUpload =
-                CompletedMultipartUpload.builder()
-                        .parts(completedParts)
-                        .build();
+            CompletedMultipartUpload completedUpload =
+                    CompletedMultipartUpload.builder()
+                            .parts(completedParts)
+                            .build();
 
-        CompleteMultipartUploadRequest completeRequest =
-                CompleteMultipartUploadRequest.builder()
-                        .bucket(properties.getBucket())
-                        .key(key)
-                        .uploadId(uploadId)
-                        .multipartUpload(completedUpload)
-                        .build();
-        System.out.println("Upload successful");
+            CompleteMultipartUploadRequest completeRequest =
+                    CompleteMultipartUploadRequest.builder()
+                            .bucket(properties.getBucket())
+                            .key(key)
+                            .uploadId(uploadId)
+                            .multipartUpload(completedUpload)
+                            .build();
+            System.out.println("Upload successful");
 
-        // Get video information
-        String title = completeMultipartRequest.getTitle();
-        String description = completeMultipartRequest.getDescription();
-        String category = completeMultipartRequest.getCategory();
-        String url = S3Helper.finalUrl(key, properties.getBucket());
+            // Get video information
+            String title = completeMultipartRequest.getTitle();
+            String description = completeMultipartRequest.getDescription();
+            String category = completeMultipartRequest.getCategory();
+            String url = S3Helper.finalUrl(key, properties.getBucket());
 
-        Video video = new Video();
-        video.setTitle(title);
-        video.setDescription(description);
-        video.setCategory(Category.valueOf(category.toUpperCase()));
-        video.setUrl(url);
-        video.setAuthorEmail(email);
-        videoRepository.save(video);
+            Video video = new Video();
+            video.setTitle(title);
+            video.setDescription(description);
+            video.setCategory(Category.valueOf(category.toUpperCase()));
+            video.setUrl(url);
+            video.setAuthorEmail(email);
+            videoRepository.save(video);
 
-        return s3Client.completeMultipartUpload(completeRequest);
+            micrometerConfig.incrementSuccessUploadVideoCounter();
+
+            return s3Client.completeMultipartUpload(completeRequest);
+        }
+        catch (Exception e) {
+            micrometerConfig.incrementFailedUploadVideoCounter();
+            throw new VideoUploadException(e.getMessage());
+        }
     }
 
     @Override
@@ -321,9 +333,15 @@ public class VideoServiceImpl implements VideoService {
             video.setCategory(Category.valueOf(verifyUploadPresign.getCategory().toUpperCase()));
             video.setAuthorEmail(verifyUploadPresign.getAuthor());
             videoRepository.save(video);
+
+            // Increase metric success upload
+            micrometerConfig.incrementSuccessUploadVideoCounter();
+
             return "Successfully";
         }
         catch (Exception e) {
+            // Increase metric fail upload
+            micrometerConfig.incrementFailedUploadVideoCounter();
             throw new RuntimeException("Verify exist file failed");
         }
     }

@@ -30,10 +30,27 @@ management:
   endpoints:
     web:
       exposure:
-        include: prometheus,health,info
-  endpoint:
-    prometheus:
-      enable: true
+        include: prometheus,health,info,metrics
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${ENVIRONMENT:development}
+
+#otel:
+#  metrics:
+#    exporter: otlp
+#  service:
+#    name: videod_otel
+#  traces:
+#    exporter: otlp
+#  exporter:
+#    otlp:
+#      endpoint: http://localhost:4317
+
 
 do:
   space:
@@ -47,3 +64,10 @@ jwt:
   secret-key: 'Y0doaGJXNW5kWGxsYm5SaGRHUmhkR0YwZEhReU1ESTBMakU9'
   expiredAccess: '4h'
   expiredRefresh: '1d'
+
+logging:
+  level:
+    io:
+      micrometer:
+        core:
+          instrument: DEBUG

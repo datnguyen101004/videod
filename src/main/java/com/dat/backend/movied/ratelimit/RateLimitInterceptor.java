@@ -2,6 +2,8 @@ package com.dat.backend.movied.ratelimit;
 
 import com.dat.backend.movied.user.entity.User;
 import com.dat.backend.movied.user.repository.UserRepository;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
@@ -16,11 +18,14 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
     private final RateLimitService rateLimitService;
     private final UserRepository userRepository;
+    private final MeterRegistry meterRegistry;
 
     public RateLimitInterceptor(RateLimitService rateLimitService,
-                                UserRepository userRepository) {
+                                UserRepository userRepository,
+                                MeterRegistry meterRegistry) {
         this.rateLimitService = rateLimitService;
         this.userRepository = userRepository;
+        this.meterRegistry = meterRegistry;
     }
 
     @Override
@@ -46,6 +51,12 @@ public class RateLimitInterceptor implements HandlerInterceptor {
             return true;
         }
         else {
+            meterRegistry.counter(
+                    "ratelimit.blocked",
+                    "endpoint", request.getRequestURI(),
+                    "method", request.getMethod(),
+                    "plan", rateLimitPlan.name()
+            ).increment();
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
             response.setHeader("X-RateLimit-Retry-After-Seconds", "300");
             response.getWriter().write("{\"error\": \"Rate limit exceeded. Try again after 300s.\"}");

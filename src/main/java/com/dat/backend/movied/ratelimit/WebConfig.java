@@ -15,7 +15,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(rateLimitInterceptor)
-        .addPathPatterns("/api/v1/video/upload/**")
+        .addPathPatterns("/api/v1/video/upload/**", "/api/v1/user/**")
         .excludePathPatterns("/auth/**", "/oauth2/**");
     }
 }

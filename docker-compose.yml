@@ -33,6 +33,8 @@ services:
       GG_CLIENT_ID: ${GG_CLIENT_ID}
       GG_CLIENT_SECRET: ${GG_CLIENT_SECRET}
       FE_URL: ${FE_URL}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
     restart: unless-stopped
     depends_on:
       db:
@@ -57,7 +59,7 @@ services:
   grafana:
     image: grafana/grafana
     ports:
-      - "3000:3000"
+      - "3030:3000"
     networks:
       - videod_network
     depends_on:
@@ -67,10 +69,22 @@ services:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
 
+  redis:
+    image: redis:7
+    container_name: redis_videod
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - videod_network
+    volumes:
+      - redis_videod_data:/data
+
 volumes:
   videod_data:
   grafana_data:
   prometheus_data:
+  redis_videod_data:
 
 networks:
   videod_network:

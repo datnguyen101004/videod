@@ -1,6 +1,6 @@
 package com.dat.backend.movied.video.service.impl;
 
-import com.dat.backend.movied.common.config.MicrometerConfig;
+import com.dat.backend.movied.common.config.MetricConfig;
 import com.dat.backend.movied.video.config.S3Properties;
 import com.dat.backend.movied.video.dto.*;
 import com.dat.backend.movied.video.entity.Category;
@@ -33,18 +33,18 @@ public class VideoServiceImpl implements VideoService {
     private static final long CHUNK_SIZE = 10 * 1024 * 1024; // 10MB
     private final S3Presigner s3Presigner;
     private final S3Client s3Client;
-    private final MicrometerConfig micrometerConfig;
+    private final MetricConfig metricConfig;
 
     public VideoServiceImpl(VideoRepository videoRepository,
                             S3Client s3Client,
                             S3Properties properties,
                             S3Presigner s3Presigner,
-                            MicrometerConfig micrometerConfig) {
+                            MetricConfig metricConfig) {
         this.videoRepository = videoRepository;
         this.properties = properties;
         this.s3Presigner = s3Presigner;
         this.s3Client = s3Client;
-        this.micrometerConfig = micrometerConfig;
+        this.metricConfig = metricConfig;
     }
 
     // Upload video to DO space
@@ -227,12 +227,12 @@ public class VideoServiceImpl implements VideoService {
             video.setAuthorEmail(email);
             videoRepository.save(video);
 
-            micrometerConfig.incrementSuccessUploadVideoCounter();
+            metricConfig.incrementSuccessUploadVideoCounter();
 
             return s3Client.completeMultipartUpload(completeRequest);
         }
         catch (Exception e) {
-            micrometerConfig.incrementFailedUploadVideoCounter();
+            metricConfig.incrementFailedUploadVideoCounter();
             throw new VideoUploadException(e.getMessage());
         }
     }
@@ -335,13 +335,13 @@ public class VideoServiceImpl implements VideoService {
             videoRepository.save(video);
 
             // Increase metric success upload
-            micrometerConfig.incrementSuccessUploadVideoCounter();
+            metricConfig.incrementSuccessUploadVideoCounter();
 
             return "Successfully";
         }
         catch (Exception e) {
             // Increase metric fail upload
-            micrometerConfig.incrementFailedUploadVideoCounter();
+            metricConfig.incrementFailedUploadVideoCounter();
             throw new RuntimeException("Verify exist file failed");
         }
     }

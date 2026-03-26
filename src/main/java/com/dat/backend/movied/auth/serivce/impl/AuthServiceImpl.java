@@ -4,6 +4,7 @@ import com.dat.backend.movied.auth.dto.AuthRequest;
 import com.dat.backend.movied.auth.dto.AuthResponse;
 import com.dat.backend.movied.auth.entity.LoginMethod;
 import com.dat.backend.movied.auth.entity.Role;
+import com.dat.backend.movied.user.entity.Plan;
 import com.dat.backend.movied.user.entity.User;
 import com.dat.backend.movied.auth.repository.UserLoginRepository;
 import com.dat.backend.movied.auth.serivce.AuthService;
@@ -57,6 +58,7 @@ public class AuthServiceImpl implements AuthService {
         newUser.setPassword(passwordEncoder.encode(authRequest.getPassword()));
         newUser.setRole(Role.USER);
         newUser.setLoginMethod(LoginMethod.NORMAL);
+        newUser.setPlan(Plan.FREE);
         userRepository.save(newUser);
 
         // Generate token

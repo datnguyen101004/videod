@@ -91,6 +91,26 @@
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
 
+
+        <!-- bucket4j with using token bucket algorithm -->
+        <dependency>
+            <groupId>com.bucket4j</groupId>
+            <artifactId>bucket4j-core</artifactId>
+            <version>8.7.0</version>
+        </dependency>
+
+<!--        &lt;!&ndash; For distributed cache (Redis) &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>com.bucket4j</groupId>-->
+<!--            <artifactId>bucket4j-redis</artifactId>-->
+<!--            <version>8.7.0</version>-->
+<!--        </dependency>-->
+
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.boot</groupId>-->
+<!--            <artifactId>spring-boot-starter-data-redis</artifactId>-->
+<!--        </dependency>-->
+
         <!-- Source: https://mvnrepository.com/artifact/software.amazon.awssdk/netty-nio-client -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>

@@ -2,17 +2,16 @@ package com.dat.backend.movied.common.config;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
-import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 
 @Component
-public class MicrometerConfig {
+public class MetricConfig {
 
     private final MeterRegistry meterRegistry;
     private final Counter successUploadVideoCounter;
     private final Counter failedUploadVideoCounter;
 
-    public MicrometerConfig(MeterRegistry meterRegistry) {
+    public MetricConfig(MeterRegistry meterRegistry) {
         this.meterRegistry = meterRegistry;
 
         this.successUploadVideoCounter = Counter.builder("video.upload")

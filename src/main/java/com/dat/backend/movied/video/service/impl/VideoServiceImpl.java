@@ -313,7 +313,8 @@ public class VideoServiceImpl implements VideoService {
     }
 
     @Override
-    public String verifyAndSaveToDatabase(VerifyUploadPresign verifyUploadPresign, String name) {
+    public String verifyAndSaveToDatabase(VerifyUploadPresign verifyUploadPresign,
+                                          String name) {
         String key = verifyUploadPresign.getKey();
 
         try {

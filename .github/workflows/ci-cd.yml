@@ -28,6 +28,9 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      - name: Run tests
+        run: mvn clean verify
+
       - name: Generate image tag
         id: vars
         run: echo "tag=${GITHUB_SHA}" >> $GITHUB_OUTPUT

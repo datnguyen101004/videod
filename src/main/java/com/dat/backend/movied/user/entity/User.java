@@ -5,7 +5,7 @@ import com.dat.backend.movied.auth.entity.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Entity(name = "user")
+@Entity(name = "users")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

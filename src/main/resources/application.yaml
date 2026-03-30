@@ -1,6 +1,14 @@
 spring:
   application:
-    name: MovieD
+    name: videod
+  config:
+    import: optional:vault://
+  cloud:
+    vault:
+      token: root-token
+      kv:
+        enabled: true
+      scheme: http
   datasource:
     url: jdbc:mysql://localhost:3306/videod
     username: root
@@ -24,11 +32,11 @@ spring:
     redis:
       host: localhost
       port: 6379
+  profiles:
+    active: ${profile:dev}
 
 server:
   forward-headers-strategy: framework
-
-fe_url: ${FE_URL:http://localhost:3001}
 
 management:
   endpoints:
@@ -70,3 +78,4 @@ logging:
       micrometer:
         core:
           instrument: DEBUG
+    org.springframework.cloud.vault: DEBUG

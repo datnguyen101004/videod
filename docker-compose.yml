@@ -12,8 +12,6 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: videod
-    ports:
-      - "3307:3306"
     networks:
       - videod_network
     volumes:
@@ -72,13 +70,21 @@ services:
   redis:
     image: redis:7
     container_name: redis_videod
-    ports:
-      - "6379:6379"
     restart: unless-stopped
     networks:
       - videod_network
     volumes:
       - redis_videod_data:/data
+
+  vault:
+    container_name: "vault"
+    image: hashicorp/vault:latest
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: "root-token"
+    networks:
+      - videod_network
+    volumes:
+      - vault_data:/data
 
 #  otel-collector:
 #    image: otel/opentelemetry-collector:latest

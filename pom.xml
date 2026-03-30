@@ -119,6 +119,14 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Source: https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-vault-config -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-vault-config</artifactId>
+            <version>5.0.1</version>
+            <scope>compile</scope>
+        </dependency>
+
         <!-- bucket4j with using token bucket algorithm -->
         <dependency>
             <groupId>com.bucket4j</groupId>

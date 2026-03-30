@@ -104,7 +104,7 @@ docker compose up -d
     - Xóa: DELETE /api/v1/video/delete?videoId=ID (yêu cầu role USER/ADMIN).
 
 - Giới hạn tốc độ và quan sát:
-    - Bucket4j + Redis áp dụng mặc định 100 yêu cầu/phút/bucket.
+    - Bucket4j + Redis áp dụng cho api upload với 2 plan: FREE và PREMIUM. Với plan FREE thì được upload 5 file và sau 5p sẽ được upload thêm 1 file, còn với plan PREMIUM thì sẽ được upload 10 file và 2 file sau mỗi 5p.
     - Sức khỏe/metrics: /actuator/health, /actuator/prometheus; quan sát qua Prometheus/Grafana.
 
 ## Ghi chú phát triển

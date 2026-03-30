@@ -4,6 +4,9 @@ on:
   workflow_dispatch:
   push:
     branches: [ "main" ]
+    paths:
+      - src/**
+      - .github/**
 
 env:
   IMAGE_NAME: datnguyen10102004/videod

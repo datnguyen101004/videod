@@ -66,15 +66,15 @@ docker compose up -d
 
 - Auth: POST /auth/login, POST /auth/register. OAuth2: /oauth2/authorization/google (redirect về FE với token).
 - Video nhỏ (<100MB):
-    1. POST /api/v1/video/upload/small → presigned URL
-    2. PUT file tới URL trả về
-    3. POST /api/v1/video/verify lưu metadata
+  - POST /api/v1/video/upload/small → presigned URL
+  - PUT file tới URL trả về
+  - POST /api/v1/video/verify lưu metadata
 - Video lớn (multipart):
-    1. POST /api/v1/video/upload/multipart/initiate → uploadId, key
-    2. Lặp: POST /api/v1/video/upload/multipart/part-url → presigned part URL, PUT từng part
-    3. POST /api/v1/video/upload/multipart/complete để ghép part
-    4. POST /api/v1/video/abort để hủy (nếu cần)
-- Khác: GET /api/v1/video/all, POST /api/v1/video/download, DELETE /api/v1/video/delete?videoId=ID, GET /api/v1/user/hello (yêu cầu JWT).
+  - POST /api/v1/video/upload/multipart/initiate → uploadId, key
+  - Lặp: POST /api/v1/video/upload/multipart/part-url → presigned part URL, PUT từng part
+  - POST /api/v1/video/upload/multipart/complete để ghép part
+  - POST /api/v1/video/abort để hủy (nếu cần)
+- Khác: GET /api/v1/video/all, POST /api/v1/video/download, DELETE /api/v1/video/delete?videoId=ID.
 
 ## Workflow
 

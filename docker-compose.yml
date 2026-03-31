@@ -31,11 +31,12 @@ services:
       GG_CLIENT_ID: ${GG_CLIENT_ID}
       GG_CLIENT_SECRET: ${GG_CLIENT_SECRET}
       FE_URL: ${FE_URL}
-      SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PORT: 6379
+      REDIS_URL: redis://redis_videod:6379
     restart: unless-stopped
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - videod_network
@@ -75,6 +76,13 @@ services:
       - videod_network
     volumes:
       - redis_videod_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   vault:
     container_name: "vault"
@@ -85,6 +93,9 @@ services:
       - videod_network
     volumes:
       - vault_data:/data
+    ports:
+      - "8200:8200"
+    restart: unless-stopped
 
 #  otel-collector:
 #    image: otel/opentelemetry-collector:latest
@@ -115,6 +126,7 @@ volumes:
   prometheus_data:
   redis_videod_data:
   jaeger-data:
+  vault_data:
 
 networks:
   videod_network:

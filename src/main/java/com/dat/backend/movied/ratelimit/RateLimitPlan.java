@@ -4,8 +4,8 @@ import java.time.Duration;
 
 public enum RateLimitPlan {
 
-    FREE(5, 1, Duration.ofMinutes(5)),
-    PREMIUM(10, 2, Duration.ofMinutes(5));
+    FREE(5, 1, Duration.ofMinutes(1)),
+    PREMIUM(10, 2, Duration.ofMinutes(1));
 
     private final Long capacity;
     private final Long refillTokens;
@@ -29,7 +29,7 @@ public enum RateLimitPlan {
         return duration;
     }
 
-    public static RateLimitPlan getPlanForUser(String email, String plan) {
+    public static RateLimitPlan getPlanForUser(String plan) {
         if (plan.equalsIgnoreCase("free")) {
             return FREE;
         }

@@ -1,38 +1,48 @@
 package com.dat.backend.movied.ratelimit;
 
-import io.github.bucket4j.Bandwidth;
-import io.github.bucket4j.Bucket;
-import io.github.bucket4j.Refill;
+import io.github.bucket4j.distributed.ExpirationAfterWriteStrategy;
+import io.github.bucket4j.distributed.proxy.ProxyManager;
+import io.github.bucket4j.redis.lettuce.cas.LettuceBasedProxyManager;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.codec.ByteArrayCodec;
+import io.lettuce.core.codec.RedisCodec;
+import io.lettuce.core.codec.StringCodec;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.GenericToStringSerializer;
 
 import java.time.Duration;
 
 @Configuration
 public class RateLimitConfig {
+    private final RedisProperty redisProperty;
 
-    @Bean
-    public RedisTemplate<String, Long> redisTemplate(RedisConnectionFactory factory) {
-        RedisTemplate<String, Long> template = new RedisTemplate<>();
-        template.setConnectionFactory(factory);
-        template.setDefaultSerializer(new GenericToStringSerializer<>(Long.class));
-        return template;
+    public RateLimitConfig(RedisProperty redisProperty) {
+        this.redisProperty = redisProperty;
     }
 
     /**
-     * Creates a bucket with:
-     * - Capacity: 100 tokens
-     * - Refill: 1 tokens per seconds ( greedy refill)
+     * Redis config
      */
     @Bean
-    public Bucket createDefaultBucket() {
-        Bandwidth limit = Bandwidth.classic(
-                100, // capacity
-                Refill.greedy(60, Duration.ofMinutes(1))
-        );
-        return Bucket.builder().addLimit(limit).build();
+    public RedisClient redisClient() {
+        return RedisClient.create(redisProperty.getUrl());
+    }
+
+    @Bean(destroyMethod = "close")
+    public StatefulRedisConnection<String, byte[]> redisConnection(RedisClient redisClient) {
+        return redisClient.connect(RedisCodec.of(StringCodec.UTF8, ByteArrayCodec.INSTANCE));
+    }
+
+    @Bean
+    public ProxyManager<String> lettuceBasedProxyManager(RedisClient redisClient, StatefulRedisConnection<String, byte[]> connection) {
+
+        return LettuceBasedProxyManager.builderFor(connection)
+                .withExpirationStrategy(
+                        ExpirationAfterWriteStrategy.basedOnTimeForRefillingBucketUpToMax(
+                                Duration.ofMinutes(2L)
+                        )
+                )
+                .build();
     }
 }

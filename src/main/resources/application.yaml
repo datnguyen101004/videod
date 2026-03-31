@@ -28,12 +28,11 @@ spring:
           google:
             client-id: ${GG_CLIENT_ID}
             client-secret: ${GG_CLIENT_SECRET}
-  data:
-    redis:
-      host: localhost
-      port: 6379
   profiles:
     active: ${profile:dev}
+
+redis:
+  url: ${REDIS_URL:redis://localhost:6379}
 
 server:
   forward-headers-strategy: framework
@@ -42,7 +41,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: prometheus,health,info,metrics
+        include: prometheus,health,info,metrics,scheduledtasks
   prometheus:
     metrics:
       export:

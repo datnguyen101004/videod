@@ -1,5 +1,6 @@
-package com.dat.backend.movied.ratelimit;
+package com.dat.backend.movied.ratelimit.service;
 
+import com.dat.backend.movied.ratelimit.common.RateLimitPlan;
 import org.springframework.stereotype.Service;
 
 import io.github.bucket4j.Bandwidth;

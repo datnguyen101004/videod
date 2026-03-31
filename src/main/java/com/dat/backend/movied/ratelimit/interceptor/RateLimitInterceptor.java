@@ -1,5 +1,7 @@
-package com.dat.backend.movied.ratelimit;
+package com.dat.backend.movied.ratelimit.interceptor;
 
+import com.dat.backend.movied.ratelimit.common.RateLimitPlan;
+import com.dat.backend.movied.ratelimit.service.RateLimitService;
 import com.dat.backend.movied.user.entity.User;
 import com.dat.backend.movied.user.repository.UserRepository;
 import io.micrometer.core.instrument.MeterRegistry;

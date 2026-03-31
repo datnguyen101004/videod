@@ -1,4 +1,4 @@
-package com.dat.backend.movied.ratelimit;
+package com.dat.backend.movied.ratelimit.common;
 
 import java.time.Duration;
 

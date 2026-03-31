@@ -1,5 +1,6 @@
-package com.dat.backend.movied.ratelimit;
+package com.dat.backend.movied.ratelimit.config;
 
+import com.dat.backend.movied.ratelimit.interceptor.RateLimitInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;

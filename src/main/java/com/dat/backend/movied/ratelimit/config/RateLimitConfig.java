@@ -1,5 +1,6 @@
-package com.dat.backend.movied.ratelimit;
+package com.dat.backend.movied.ratelimit.config;
 
+import com.dat.backend.movied.ratelimit.common.RedisProperty;
 import io.github.bucket4j.distributed.ExpirationAfterWriteStrategy;
 import io.github.bucket4j.distributed.proxy.ProxyManager;
 import io.github.bucket4j.redis.lettuce.cas.LettuceBasedProxyManager;

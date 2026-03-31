@@ -1,5 +1,6 @@
-package com.dat.backend.movied.ratelimit;
+package com.dat.backend.movied.ratelimit.service;
 
+import com.dat.backend.movied.ratelimit.common.RateLimitPlan;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.BucketConfiguration;

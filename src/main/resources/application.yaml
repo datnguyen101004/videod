@@ -29,6 +29,8 @@ spring:
             client-id: ${GG_CLIENT_ID}
             client-secret: ${GG_CLIENT_SECRET}
 
+FE_URL: ${FE_URL:http://localhost:3001}
+
 redis:
   url: ${REDIS_URL:redis://localhost:6379}
 

@@ -9,6 +9,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -22,14 +23,14 @@ import java.util.Optional;
 public class CustomGoogleOauthSuccess implements AuthenticationSuccessHandler {
     private final JwtService jwtService;
     private final UserLoginRepository userLoginRepository;
-    private final VaultProperties vaultProperties;
+
+    @Value("${FE_URL}")
+    private String FE_URL;
 
     public CustomGoogleOauthSuccess(JwtService jwtService,
-                                    UserLoginRepository userLoginRepository,
-                                    VaultProperties vaultProperties) {
+                                    UserLoginRepository userLoginRepository) {
         this.jwtService = jwtService;
         this.userLoginRepository = userLoginRepository;
-        this.vaultProperties = vaultProperties;
     }
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -38,7 +39,6 @@ public class CustomGoogleOauthSuccess implements AuthenticationSuccessHandler {
 
         //System.out.println(authentication.toString());
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-        System.out.println(vaultProperties.getFe_url());
 
         if (oAuth2User == null) {
             throw new AuthenticationException("No OAuth2User found");
@@ -71,7 +71,7 @@ public class CustomGoogleOauthSuccess implements AuthenticationSuccessHandler {
 
         response.addCookie(refreshCookie);
 
-        String redirectUri = vaultProperties.getFe_url() + "/login/success?token=" + accessToken;
+        String redirectUri = FE_URL + "/login/success?token=" + accessToken;
         response.sendRedirect(redirectUri);
     }
 }

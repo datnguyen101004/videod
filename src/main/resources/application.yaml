@@ -1,14 +1,14 @@
 spring:
   application:
     name: videod
-  config:
-    import: optional:vault://
-  cloud:
-    vault:
-      token: root-token
-      kv:
-        enabled: true
-      scheme: http
+#  config:
+#    import: optional:vault://
+#  cloud:
+#    vault:
+#      token: root-token
+#      kv:
+#        enabled: true
+#      scheme: http
   datasource:
     url: jdbc:mysql://localhost:3306/videod
     username: root

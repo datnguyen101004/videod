@@ -83,18 +83,18 @@ services:
       timeout: 3s
       retries: 5
 
-  vault:
-    container_name: "vault"
-    image: hashicorp/vault:latest
-    environment:
-      VAULT_DEV_ROOT_TOKEN_ID: "root-token"
-    networks:
-      - videod_network
-    volumes:
-      - vault_data:/data
-    ports:
-      - "8200:8200"
-    restart: unless-stopped
+#  vault:
+#    container_name: "vault"
+#    image: hashicorp/vault:latest
+#    environment:
+#      VAULT_DEV_ROOT_TOKEN_ID: "root-token"
+#    networks:
+#      - videod_network
+#    volumes:
+#      - vault_data:/data
+#    ports:
+#      - "8200:8200"
+#    restart: unless-stopped
 
 #  otel-collector:
 #    image: otel/opentelemetry-collector:latest

@@ -34,7 +34,7 @@ public class RateLimitServiceTest {
 
     @DynamicPropertySource
     static void redisProperties(DynamicPropertyRegistry registry) {
-        registry.add("redis.url", () -> "redis://" + redis.getHost() + ":" + redis.getFirstMappedPort());
+        registry.add("REDIS_URL", () -> "redis://" + redis.getHost() + ":" + redis.getFirstMappedPort());
     }
 
     @Test

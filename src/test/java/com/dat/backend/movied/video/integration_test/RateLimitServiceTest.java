@@ -23,6 +23,7 @@ import java.util.concurrent.Executors;
 
 @Testcontainers
 @SpringBootTest
+@ActiveProfiles("test")
 public class RateLimitServiceTest {
 
     @Container

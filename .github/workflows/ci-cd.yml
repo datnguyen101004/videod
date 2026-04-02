@@ -32,7 +32,7 @@ jobs:
           java-version: '21'
 
       - name: Run tests
-        run: mvn clean test
+        run: mvn -X -e clean test
 
       - name: Generate image tag
         id: vars

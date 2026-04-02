@@ -24,7 +24,7 @@ public class CustomGoogleOauthSuccess implements AuthenticationSuccessHandler {
     private final JwtService jwtService;
     private final UserLoginRepository userLoginRepository;
 
-    @Value("${FE_URL}")
+    @Value("${fe.url}")
     private String FE_URL;
 
     public CustomGoogleOauthSuccess(JwtService jwtService,

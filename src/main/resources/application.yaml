@@ -28,8 +28,6 @@ spring:
           google:
             client-id: ${GG_CLIENT_ID}
             client-secret: ${GG_CLIENT_SECRET}
-  profiles:
-    active: ${profile:dev}
 
 redis:
   url: ${REDIS_URL:redis://localhost:6379}

@@ -16,7 +16,6 @@ services:
       - videod_network
     volumes:
       - videod_data:/var/lib/mysql
-
   app:
     image: datnguyen10102004/videod:${IMAGE_TAG:-latest}
     container_name: videod-be
@@ -31,7 +30,7 @@ services:
       GG_CLIENT_ID: ${GG_CLIENT_ID}
       GG_CLIENT_SECRET: ${GG_CLIENT_SECRET}
       FE_URL: ${FE_URL}
-      REDIS_URL: redis://redis_videod:6379
+      REDIS_URL: redis://redis:6379
     restart: unless-stopped
     depends_on:
       db:

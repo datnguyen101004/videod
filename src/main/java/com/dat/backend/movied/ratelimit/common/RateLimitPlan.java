@@ -7,9 +7,9 @@ import java.time.Duration;
 @Getter
 public enum RateLimitPlan {
 
-    FREE(5, 1, Duration.ofMillis(30)),
-    PREMIUM(20, 4, Duration.ofMillis(30)),
-    MAX_PREMIUM(1000, 10, Duration.ofMillis(30));
+    FREE(5, 1, Duration.ofSeconds(10)),
+    PREMIUM(20, 4, Duration.ofSeconds(10)),
+    MAX_PREMIUM(1000, 10, Duration.ofSeconds(10));
 
     private final Long capacity;
     private final Long refillTokens;

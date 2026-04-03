@@ -26,5 +26,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Plan plan;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "login_method")
     private LoginMethod loginMethod;
 }

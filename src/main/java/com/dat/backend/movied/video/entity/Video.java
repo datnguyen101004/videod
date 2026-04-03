@@ -1,16 +1,14 @@
 package com.dat.backend.movied.video.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
+import lombok.*;
 import software.amazon.awssdk.annotations.NotNull;
 
-@Entity
+@Entity(name = "videos")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Video {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,7 +31,7 @@ public class Video {
     private String url;
 
     @Column(
-            name = "author_mail"
+            name = "author_email"
     )
     private String authorEmail;
 

@@ -11,6 +11,7 @@ import com.dat.backend.movied.video.repository.VideoRepository;
 import com.dat.backend.movied.video.service.VideoService;
 import com.dat.backend.movied.video.util.S3Helper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.websocket.AuthenticationException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -133,9 +134,18 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     public String deleteVideo(Long videoId, String email) {
-        Video video = videoRepository.findById(videoId).orElseThrow(() -> new ResourceNotExit("Video not found"));
-        videoRepository.delete(video);
-        return "Video deleted";
+        try {
+            Video video = videoRepository.findById(videoId).orElseThrow(() -> new ResourceNotExit("Video not found"));
+            if (email.equalsIgnoreCase(video.getAuthorEmail())) {
+                videoRepository.delete(video);
+            } else {
+                throw new AuthenticationException("You are not author");
+            }
+            return "Video deleted";
+        }
+        catch (Exception e) {
+            return e.getMessage();
+        }
     }
 
     @Override

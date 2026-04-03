@@ -12,7 +12,7 @@ import java.util.List;
 public interface VideoRepository extends JpaRepository<Video, Long> {
 
     @Query(
-            value = "select * from video v where v.category = ?1 limit 3",
+            value = "select * from videos v where v.category = ?1 limit 3",
             nativeQuery = true
     )
     List<Video> findTop3VideoByCategory(Category category);

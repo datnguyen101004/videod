@@ -1,7 +1,7 @@
 create table users (
     id bigint auto_increment primary key ,
     email varchar(255),
-    password varchar(50),
+    password varchar(255),
     role varchar(50),
     plan varchar(50),
     login_method varchar(50)

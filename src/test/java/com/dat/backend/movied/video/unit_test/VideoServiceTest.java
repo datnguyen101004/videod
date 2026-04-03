@@ -2,9 +2,9 @@ package com.dat.backend.movied.video.unit_test;
 
 import com.dat.backend.movied.common.config.MetricConfig;
 import com.dat.backend.movied.video.config.S3Properties;
-import com.dat.backend.movied.video.dto.PresignUploadRequest;
-import com.dat.backend.movied.video.dto.PresignedUrlResponse;
-import com.dat.backend.movied.video.dto.VerifyUploadPresign;
+import com.dat.backend.movied.video.dto.request.PresignUploadRequest;
+import com.dat.backend.movied.video.dto.response.PresignedUrlResponse;
+import com.dat.backend.movied.video.dto.request.VerifyUploadPresign;
 import com.dat.backend.movied.video.entity.Video;
 import com.dat.backend.movied.video.repository.VideoRepository;
 import com.dat.backend.movied.video.service.impl.VideoServiceImpl;

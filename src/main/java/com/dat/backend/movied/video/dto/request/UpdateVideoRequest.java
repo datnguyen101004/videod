@@ -1,4 +1,4 @@
-package com.dat.backend.movied.video.dto;
+package com.dat.backend.movied.video.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,10 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class VideoResponse {
-    private Long id;
+public class UpdateVideoRequest {
+    private Long videoId;
     private String title;
     private String description;
-    private String url;
-    private String category;
 }

@@ -1,4 +1,4 @@
-package com.dat.backend.movied.video.dto;
+package com.dat.backend.movied.video.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,10 +9,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PresignUploadRequest {
+public class UploadInitiateRequest {
     private String filename;
     private String contentType;
-    private Long fileSize;
+    private long fileSize;
 
-    private String category;
+    private String category; // It needed for create key
 }

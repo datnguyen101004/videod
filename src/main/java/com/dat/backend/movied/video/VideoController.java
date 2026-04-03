@@ -1,7 +1,11 @@
 package com.dat.backend.movied.video;
 
-import com.dat.backend.movied.video.dto.*;
 import com.dat.backend.movied.common.dto.ResponseApi;
+import com.dat.backend.movied.video.dto.request.*;
+import com.dat.backend.movied.video.dto.response.MultipartInitiateResponse;
+import com.dat.backend.movied.video.dto.response.PartUrlResponse;
+import com.dat.backend.movied.video.dto.response.PresignedUrlResponse;
+import com.dat.backend.movied.video.dto.response.VideoResponse;
 import com.dat.backend.movied.video.service.VideoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +25,7 @@ public class VideoController {
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @PostMapping(path = "/upload/small")
     public ResponseApi<PresignedUrlResponse> createPresignUrlSmallVideo(@RequestBody PresignUploadRequest presignUploadRequest,
-                                                  Authentication authentication) {
+                                                                        Authentication authentication) {
         return ResponseApi.success(videoService.createPresignUrlSmallVideo(presignUploadRequest, authentication.getName()));
     }
 
@@ -41,13 +45,6 @@ public class VideoController {
     @GetMapping("/all")
     public ResponseApi<List<VideoResponse>> getAllVideos() {
         return ResponseApi.success(videoService.getAllVideo());
-    }
-
-    @DeleteMapping("/delete")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseApi<String> deleteVideo(@RequestParam("videoId") Long videoId,
-                                           Authentication authentication) {
-        return ResponseApi.success(videoService.deleteVideo(videoId, authentication.getName()));
     }
 
     @PostMapping("/upload/multipart/initiate")
@@ -87,5 +84,29 @@ public class VideoController {
     @PostMapping("/trigger")
     public ResponseEntity<String> triggerVideo() {
         return ResponseEntity.ok(videoService.trigger());
+    }
+
+    @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseApi<String> deleteVideo(@RequestParam("videoId") Long videoId,
+                                           Authentication authentication) {
+        return ResponseApi.success(videoService.deleteVideo(videoId, authentication.getName()));
+    }
+
+    @PutMapping("/update")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseApi<VideoResponse> updateVideo(@RequestBody UpdateVideoRequest request,
+                                                  Authentication authentication) {
+        String title = request.getTitle();
+        String description = request.getDescription();
+        Long videoId = request.getVideoId();
+        String email = authentication.getName();
+
+        return ResponseApi.success(videoService.updateVideo(title, description, videoId, email));
+    }
+
+    @GetMapping("/relate/{id}")
+    public ResponseApi<List<VideoResponse>> getRelateVideos(@PathVariable("id") Long videoId) {
+        return ResponseApi.success(videoService.findRelateVideo(videoId));
     }
 }

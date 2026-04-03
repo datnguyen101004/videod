@@ -1,4 +1,4 @@
-package com.dat.backend.movied.video.dto;
+package com.dat.backend.movied.video.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CompletedPartDto {
-    private int partNumber;
-    private String eTag;
+public class VideoDownloadRequest {
+    private Long videoId;
 }

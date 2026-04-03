@@ -1,6 +1,9 @@
 package com.dat.backend.movied.video.service;
 
-import com.dat.backend.movied.video.dto.*;
+import com.dat.backend.movied.video.dto.request.*;
+import com.dat.backend.movied.video.dto.response.MultipartInitiateResponse;
+import com.dat.backend.movied.video.dto.response.PresignedUrlResponse;
+import com.dat.backend.movied.video.dto.response.VideoResponse;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 
 import java.util.List;
@@ -25,4 +28,8 @@ public interface VideoService {
     String trigger();
 
     String verifyAndSaveToDatabase(VerifyUploadPresign verifyUploadPresign, String name);
+
+    VideoResponse updateVideo(String title, String description, Long videoId, String email);
+
+    List<VideoResponse> findRelateVideo(Long videoId);
 }

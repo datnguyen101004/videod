@@ -1,4 +1,4 @@
-package com.dat.backend.movied.video.dto;
+package com.dat.backend.movied.video.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,10 +9,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class VerifyUploadPresign {
-    private String key;
+public class VideoResponse {
+    private Long id;
     private String title;
     private String description;
-    private String author;
+    private String url;
     private String category;
+    private String authorName;
 }

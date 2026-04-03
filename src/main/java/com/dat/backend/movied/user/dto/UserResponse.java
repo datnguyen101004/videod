@@ -1,4 +1,4 @@
-package com.dat.backend.movied.video.dto;
+package com.dat.backend.movied.user.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PresignedUrlResponse {
-    private String url;
-    private String key;
+public class UserResponse {
+    private Long id;
+    private String email;
+    private String role;
+    private String plan;
 }

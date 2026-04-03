@@ -1,8 +1,13 @@
 package com.dat.backend.movied.video.service.impl;
 
 import com.dat.backend.movied.common.config.MetricConfig;
+import com.dat.backend.movied.user.entity.User;
+import com.dat.backend.movied.user.repository.UserRepository;
 import com.dat.backend.movied.video.config.S3Properties;
-import com.dat.backend.movied.video.dto.*;
+import com.dat.backend.movied.video.dto.request.*;
+import com.dat.backend.movied.video.dto.response.MultipartInitiateResponse;
+import com.dat.backend.movied.video.dto.response.PresignedUrlResponse;
+import com.dat.backend.movied.video.dto.response.VideoResponse;
 import com.dat.backend.movied.video.entity.Category;
 import com.dat.backend.movied.video.entity.Video;
 import com.dat.backend.movied.video.exception.ResourceNotExit;
@@ -35,17 +40,19 @@ public class VideoServiceImpl implements VideoService {
     private final S3Presigner s3Presigner;
     private final S3Client s3Client;
     private final MetricConfig metricConfig;
+    private final UserRepository userRepository;
 
     public VideoServiceImpl(VideoRepository videoRepository,
                             S3Client s3Client,
                             S3Properties properties,
                             S3Presigner s3Presigner,
-                            MetricConfig metricConfig) {
+                            MetricConfig metricConfig, UserRepository userRepository) {
         this.videoRepository = videoRepository;
         this.properties = properties;
         this.s3Presigner = s3Presigner;
         this.s3Client = s3Client;
         this.metricConfig = metricConfig;
+        this.userRepository = userRepository;
     }
 
     // Upload video to DO space
@@ -126,6 +133,7 @@ public class VideoServiceImpl implements VideoService {
                     .description(video.getDescription())
                     .id(video.getId())
                     .category(String.valueOf(video.getCategory()))
+                    .authorName(video.getAuthorEmail())
                     .build();
             videoResponses.add(videoResponse);
         }
@@ -355,5 +363,56 @@ public class VideoServiceImpl implements VideoService {
             metricConfig.incrementFailedUploadVideoCounter();
             throw new RuntimeException("Verify exist file failed");
         }
+    }
+
+    @Override
+    public VideoResponse updateVideo(String title, String description, Long videoId, String email) {
+
+        // Check author
+        Video video = videoRepository.findById(videoId).orElseThrow(() -> new RuntimeException("Video not found"));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (video.getAuthorEmail().equals(email)) {
+            video.setTitle(title);
+            video.setDescription(description);
+
+            videoRepository.save(video);
+
+            return VideoResponse.builder()
+                    .id(videoId)
+                    .title(title)
+                    .description(description)
+                    .category(video.getCategory().toString())
+                    .url(video.getUrl())
+                    .authorName(email)
+                    .build();
+        }
+
+        // Not author
+        throw new RuntimeException("Video not found");
+    }
+
+    @Override
+    public List<VideoResponse> findRelateVideo(Long videoId) {
+        Video video = videoRepository.findById(videoId).orElseThrow(() -> new RuntimeException("Video not found"));
+
+        Category category = video.getCategory();
+
+        List<Video> videos = videoRepository.findAllByCategory(category);
+
+        List<VideoResponse> videoResponses = new ArrayList<>();
+
+        for (Video v : videos) {
+            VideoResponse videoResponse = new VideoResponse();
+            videoResponse.setId(v.getId());
+            videoResponse.setTitle(v.getTitle());
+            videoResponse.setDescription(v.getDescription());
+            videoResponse.setCategory(v.getCategory().toString());
+            videoResponse.setUrl(v.getUrl());
+            videoResponse.setAuthorName(v.getAuthorEmail());
+            videoResponses.add(videoResponse);
+        }
+
+        return videoResponses;
     }
 }

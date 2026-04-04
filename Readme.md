@@ -1,40 +1,42 @@
-# MovieD (videod)
+# Videod
 
 Dịch vụ backend Spring Boot cho nền tảng chia sẻ video. Hỗ trợ xác thực JWT/OAuth2, tải lên video đơn hoặc đa phần tới DigitalOcean Spaces (tương thích S3), quản lý người dùng, giới hạn tốc độ và giám sát Prometheus/Grafana.
 
 ## Tính năng chính
 
-- Đăng ký/đăng nhập bằng JWT, hỗ trợ đăng nhập Google OAuth2 và redirect về FE cùng access token.
-- Tải lên video kích thước nhỏ qua presigned URL và xác minh lưu DB; tải lên multipart cho file lớn.
-- Danh sách, tải xuống, xóa video; xác minh upload và dọn dẹp multipart (abort).
-- Giới hạn tốc độ bằng Bucket4j + Redis, cấu hình CORS mở cho SPA.
-- Giám sát qua Spring Actuator, Prometheus và dashboard Grafana; tài liệu OpenAPI/Swagger sẵn có.
+- **Xác thực & Phân quyền:** Đăng ký/đăng nhập bảo mật qua JWT (Stateless) và tích hợp đăng nhập một chạm (SSO) với Google OAuth2.
+- **Quản lý Upload Tối ưu:** Áp dụng luồng tải lên trực tiếp qua Presigned URL. Kiến trúc kết hợp Multipart Upload & Presigned URL chuyên biệt cho các tệp dung lượng lớn (>100MB), giúp tối ưu hiệu năng và độ ổn định.
+- **Kiểm soát lưu lượng (Rate Limiting):** Bảo vệ hệ thống khỏi lạm dụng cấp độ API (Plan-based) nhờ tích hợp thuật toán Token Bucket thông qua Bucket4j và Redis.
+- **Observability & Tài liệu học:** Thu thập metrics và theo dõi rủi ro hệ thống bằng Spring Actuator, Prometheus, trực quan hóa trên Grafana. Tích hợp sẵn OpenAPI/Swagger 3.0.
+- **Kiểm thử mã nguồn:** Đảm bảo tính đúng đắn của service với Mockito cho Unit Test và JUnit (kết hợp H2 / Testcontainers) cho Integration Test.
+- **DevOps & Triển khai:** Quản lý thay đổi schema DB với Flyway. Tích hợp CI/CD tự động hoá qua GitHub Actions, nâng cao bảo mật bằng Cloudflare (Reverse Proxy & HTTPS).
 
-## Kiến trúc & công nghệ
+## Kiến trúc & Công nghệ
 
-- Java 21, Spring Boot 4.0.3 (Web MVC, Security, Data JPA, OAuth2 Client, Actuator).
-- Lưu trữ MySQL; Redis cho rate limit; H2 cho môi trường test.
-- Lưu trữ đối tượng: DigitalOcean Spaces (S3 client, transfer manager, presigner).
-- JWT (jjwt) cho xác thực stateless; BCrypt để mã hóa mật khẩu.
-- Prometheus/Grafana cho metrics; Vault (tùy chọn) để lấy cấu hình bí mật.
+- **Ngôn ngữ & Framework:** Java 21 LTS, Spring Boot 4.0.3 (Web MVC, Security, Data JPA, OAuth2 Client).
+- **Database & Caching:** MySQL (Môi trường Producton), Redis (Bộ đệm & Rate limiting phân tán), H2 (Dành cho môi trường Test).
+- **Lưu trữ Dữ liệu (Object Storage):** DigitalOcean Spaces (S3-compatible API) cùng AWS V2 SDK (S3 Client, Transfer Manager, Presigner).
+- **Security:** Spring Security, JWT (jjwt) xử lý xác thực Stateless, mã hóa mật khẩu với BCrypt, HashiCorp Vault (tùy chọn) lưu trữ secret.
+- **Vận hành (DevOps / Monitor):** Docker, Docker Compose, Flyway, Prometheus, Grafana, GitHub Actions.
 
 ## Cấu hình môi trường
 
 Tham khảo [src/main/resources/application.yaml](src/main/resources/application.yaml).
 
-| Biến                       | Mô tả                          | Giá trị mẫu                        |
-| -------------------------- | ------------------------------ | ---------------------------------- |
-| SPRING_DATASOURCE_URL      | JDBC URL MySQL                 | jdbc:mysql://localhost:3306/videod |
-| SPRING_DATASOURCE_USERNAME | User DB                        | root                               |
-| SPRING_DATASOURCE_PASSWORD | Password DB                    | root                               |
-| SPRING_PROFILES_ACTIVE     | Hồ sơ chạy                     | dev                                |
-| DO_ACCESS_KEY_ID           | Access key DO Spaces           | <your-key>                         |
-| DO_SECRET_KEY              | Secret key DO Spaces           | <your-secret>                      |
-| GG_CLIENT_ID               | Google OAuth client id         | <google-client-id>                 |
-| GG_CLIENT_SECRET           | Google OAuth client secret     | <google-client-secret>             |
-| FE_URL                     | URL frontend để redirect OAuth | http://localhost:3001              |
-| SPRING_DATA_REDIS_HOST     | Redis host                     | localhost                          |
-| SPRING_DATA_REDIS_PORT     | Redis port                     | 6379                               |
+| Biến                       | Mô tả                          | Giá trị mẫu                         |
+| -------------------------- | ------------------------------ | ----------------------------------- |
+| SPRING_DATASOURCE_URL      | JDBC URL MySQL                 | jdbc:mysql://localhost:3306/videod  |
+| SPRING_DATASOURCE_USERNAME | User DB                        | root                                |
+| SPRING_DATASOURCE_PASSWORD | Password DB                    | root                                |
+| SPRING_PROFILES_ACTIVE     | Hồ sơ chạy                     | dev                                 |
+| DO_ACCESS_KEY_ID           | Access key DO Spaces           | <your-key>                          |
+| DO_SECRET_KEY              | Secret key DO Spaces           | <your-secret>                       |
+| GG_CLIENT_ID               | Google OAuth client id         | <google-client-id>                  |
+| GG_CLIENT_SECRET           | Google OAuth client secret     | <google-client-secret>              |
+| FE_URL                     | URL frontend để redirect OAuth | http://localhost:3001               |
+| REDIS_URL                  | Redis URL                      | redis://localhost:6379              |
+| JWT_SECRET_KEY             | Khóa bí mật (base64) của JWT   | Y0doaGJX... (chuỗi 64 ký tự base64) |
+| ENVIRONMENT                | Tên môi trường                 | development, production             |
 
 ## Chạy cục bộ (Maven)
 
@@ -58,7 +60,7 @@ Yêu cầu Docker & Docker Compose. Biến môi trường cần: DO_ACCESS_KEY_I
 docker compose up -d
 ```
 
-- Backend: http://localhost:8080
+- Backend: http://localhost:8081 (Được map từ 8080 của container)
 - Prometheus: http://localhost:9090
 - Grafana: http://localhost:3030 (login mặc định admin/admin)
 
@@ -73,15 +75,15 @@ docker compose up -d
   - POST /api/v1/video/upload/multipart/initiate → uploadId, key
   - Lặp: POST /api/v1/video/upload/multipart/part-url → presigned part URL, PUT từng part
   - POST /api/v1/video/upload/multipart/complete để ghép part
-  - POST /api/v1/video/abort để hủy (nếu cần)
+  - POST /api/v1/video/abort để hủy
 - Khác: GET /api/v1/video/all, POST /api/v1/video/download, DELETE /api/v1/video/delete?videoId=ID.
 
 ## Workflow
 
 - Đăng ký/đăng nhập JWT:
-    - POST /auth/register để tạo tài khoản.
-    - POST /auth/login lấy access token; đính kèm Authorization: Bearer <token> cho các API bảo vệ.
-    - Token được JwtFilter xác thực, context chứa username cho service.
+  - POST /auth/register để tạo tài khoản.
+  - POST /auth/login lấy access token; đính kèm Authorization: Bearer <token> cho các API bảo vệ.
+  - Token được JwtFilter xác thực, context chứa username cho service.
 
 - Đăng nhập Google OAuth2:
   - Truy cập /oauth2/authorization/google.
@@ -100,18 +102,25 @@ docker compose up -d
   - Nếu lỗi, POST /api/v1/video/abort với uploadId, key để dọn dẹp.
 
 - Tải xuống/xóa video:
-    - Download: POST /api/v1/video/download với key → trả link tải.
-    - Xóa: DELETE /api/v1/video/delete?videoId=ID (yêu cầu role USER/ADMIN).
+  - Download: POST /api/v1/video/download với key → trả link tải.
+  - Xóa: DELETE /api/v1/video/delete?videoId=ID (yêu cầu role USER/ADMIN).
+
+- Quản lý người dùng:
+  - GET /api/v1/user/all (ADMIN): Lấy danh sách toàn bộ người dùng.
+  - GET /api/v1/user/myvideo (USER/ADMIN): Lấy danh sách video mà bản thân đã đăng tải.
 
 - Giới hạn tốc độ và quan sát:
-    - Bucket4j + Redis áp dụng cho api upload với 2 plan: FREE và PREMIUM. Với plan FREE thì được upload 5 file và sau 5p sẽ được upload thêm 1 file, còn với plan PREMIUM thì sẽ được upload 10 file và 2 file sau mỗi 5p.
-    - Sức khỏe/metrics: /actuator/health, /actuator/prometheus; quan sát qua Prometheus/Grafana.
+  - Bucket4j + Redis áp dụng cho api với 3 plan: FREE, PREMIUM, MAX_PREMIUM.
+    - Plan FREE: tối đa 5 requests / 10 giây (hồi 1 token mỗi 10 giây).
+    - Plan PREMIUM: tối đa 20 requests / 10 giây (hồi 4 tokens mỗi 10 giây).
+    - Plan MAX_PREMIUM: tối đa 1000 requests / 10 giây (hồi 10 tokens mỗi 10 giây).
+  - Sức khỏe/metrics: /actuator/health, /actuator/prometheus; quan sát qua Prometheus/Grafana.
 
 ## Ghi chú phát triển
 
 - Security: JWT filter trước UsernamePasswordAuthenticationFilter; endpoints public bao gồm swagger, health, metrics, /api/v1/video/all.
 - CORS: mở \* cho dev; điều chỉnh trong SecurityFilter nếu cần.
-- H2 test profile: [src/main/resources/application-test.yaml](src/main/resources/application-test.yaml) tạo schema in-memory khi `mvn test`.
+- H2 test profile: [src/main/resources/application-test.yaml](src/main/resources/application-test.yaml) tạo schema in-memory khi dùng lệnh mvn test.
 - Rate limit: Bucket4j cấu hình sẵn 100 token/phút; Redis template đã khai báo.
 
 ## Kiểm thử nhanh

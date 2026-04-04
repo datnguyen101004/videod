@@ -18,8 +18,12 @@ import org.springframework.context.annotation.Configuration;
                         url = "http://localhost:8080"
                 ),
                 @Server(
+                        description = "Docker",
+                        url = "http://localhost:8081"
+                ),
+                @Server(
                         description = "Public",
-                        url = "https://public"
+                        url = "https://api.videod.me"
                 )
         },
         security = @SecurityRequirement(

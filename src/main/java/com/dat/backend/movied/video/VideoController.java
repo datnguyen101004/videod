@@ -30,6 +30,7 @@ public class VideoController {
     }
 
     @PostMapping("/verify")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<String> verifyAndSaveToDatabase(
             @RequestBody VerifyUploadPresign verifyUploadPresign,
             Authentication authentication
@@ -48,12 +49,14 @@ public class VideoController {
     }
 
     @PostMapping("/upload/multipart/initiate")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<MultipartInitiateResponse> initiateMultipart(
             @RequestBody UploadInitiateRequest request) {
         return ResponseEntity.ok(videoService.initiateMultipartUpload(request));
     }
 
     @PostMapping("/upload/multipart/part-url")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<PartUrlResponse> getPartUrl(
             @RequestBody PartUrlRequest request) {
 
@@ -67,6 +70,7 @@ public class VideoController {
     }
 
     @PostMapping("/upload/multipart/complete")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<CompleteMultipartUploadResponse> completeMultipart(
             @RequestBody CompleteMultipartRequest request,
             Authentication authentication) {
@@ -75,6 +79,7 @@ public class VideoController {
     }
 
     @PostMapping("/abort")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<String> abortMultipartUpload(
             @RequestBody AbortPartRequest abortPartRequest
     ) {
@@ -82,6 +87,7 @@ public class VideoController {
     }
 
     @PostMapping("/trigger")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<String> triggerVideo() {
         return ResponseEntity.ok(videoService.trigger());
     }

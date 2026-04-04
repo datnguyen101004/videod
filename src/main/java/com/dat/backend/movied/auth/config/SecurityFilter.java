@@ -68,7 +68,7 @@ public class SecurityFilter {
                                 "/info/**",
                                 "/metrics/**",
                                 "/actuator/**",
-                                "/api/v1/video/all").permitAll()
+                                "/api/v1/video/**").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) -> {

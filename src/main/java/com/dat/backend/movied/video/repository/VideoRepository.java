@@ -17,7 +17,11 @@ public interface VideoRepository extends JpaRepository<Video, Long> {
     )
     List<Video> findTop3VideoByCategory(Category category);
 
-    List<Video> findAllByCategory(Category category);
+    @Query(
+            value = "select * from videos v where v.category = ?1 and v.id != ?2",
+            nativeQuery = true
+    )
+    List<Video> findRelateVideo(String category, Long videoId);
 
     List<Video> findAllByAuthorEmail(String authorEmail);
 }

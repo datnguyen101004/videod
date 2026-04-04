@@ -361,7 +361,7 @@ public class VideoServiceImpl implements VideoService {
         catch (Exception e) {
             // Increase metric fail upload
             metricConfig.incrementFailedUploadVideoCounter();
-            throw new RuntimeException("Verify exist file failed");
+            throw new RuntimeException("Verify exist file failed: ", e.getCause());
         }
     }
 
@@ -395,10 +395,10 @@ public class VideoServiceImpl implements VideoService {
     @Override
     public List<VideoResponse> findRelateVideo(Long videoId) {
         Video video = videoRepository.findById(videoId).orElseThrow(() -> new RuntimeException("Video not found"));
+        String category = video.getCategory().toString().toUpperCase();
 
-        Category category = video.getCategory();
-
-        List<Video> videos = videoRepository.findAllByCategory(category);
+        log.info("Find relate video with category: {}", category);
+        List<Video> videos = videoRepository.findRelateVideo(category, videoId);
 
         List<VideoResponse> videoResponses = new ArrayList<>();
 

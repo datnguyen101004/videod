@@ -2,6 +2,7 @@ package com.dat.backend.movied.auth.config;
 
 import com.dat.backend.movied.auth.entity.LoginMethod;
 import com.dat.backend.movied.auth.entity.Role;
+import com.dat.backend.movied.user.entity.Plan;
 import com.dat.backend.movied.user.entity.User;
 import com.dat.backend.movied.auth.repository.UserLoginRepository;
 import com.dat.backend.movied.auth.serivce.JwtService;
@@ -56,6 +57,7 @@ public class CustomGoogleOauthSuccess implements AuthenticationSuccessHandler {
             newUser.setEmail(email);
             newUser.setRole(Role.USER);
             newUser.setLoginMethod(LoginMethod.OAUTH);
+            newUser.setPlan(Plan.FREE);
             userLoginRepository.save(newUser);
         }
 

@@ -361,7 +361,7 @@ public class VideoServiceImpl implements VideoService {
         catch (Exception e) {
             // Increase metric fail upload
             metricConfig.incrementFailedUploadVideoCounter();
-            throw new RuntimeException("Verify exist file failed: ", e.getCause());
+            throw new RuntimeException("Verify exist file failed", e.getCause());
         }
     }
 

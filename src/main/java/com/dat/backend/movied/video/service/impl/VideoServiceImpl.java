@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 public class VideoServiceImpl implements VideoService {
     private final VideoRepository videoRepository;
     private final S3Properties properties;
-    private static final long CHUNK_SIZE = 10 * 1024 * 1024; // 10MB
+    private static final long CHUNK_SIZE = 20 * 1024 * 1024; // 10MB
     private final S3Presigner s3Presigner;
     private final S3Client s3Client;
     private final MetricConfig metricConfig;

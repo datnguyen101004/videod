@@ -92,9 +92,9 @@ public class VideoController {
         return ResponseEntity.ok(videoService.trigger());
     }
 
-    @DeleteMapping("/delete")
+    @DeleteMapping("/delete/{videoId}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseApi<String> deleteVideo(@RequestParam("videoId") Long videoId,
+    public ResponseApi<String> deleteVideo(@PathVariable("videoId") Long videoId,
                                            Authentication authentication) {
         return ResponseApi.success(videoService.deleteVideo(videoId, authentication.getName()));
     }

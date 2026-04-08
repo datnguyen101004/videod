@@ -6,7 +6,10 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @EqualsAndHashCode(callSuper = true)
-@Entity(name = "videos")
+@Entity
+@Table(name = "videos", indexes = {
+        @Index(name = "idx_created_id", columnList = "createdAt DESC, id DESC")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,4 +18,6 @@ public class VideoResponse {
     private String url;
     private String category;
     private String authorName;
+    private Instant created_at;
+    private Instant updated_at;
 }

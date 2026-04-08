@@ -1,16 +1,17 @@
 package com.dat.backend.movied.common.entity;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.EntityListeners;
+
 import jakarta.persistence.MappedSuperclass;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
 
 @MappedSuperclass
-@EntityListeners(AuditingEntityListener.class)
+@Getter
 public abstract class TimeBaseEntity {
 
     @CreationTimestamp

@@ -6,6 +6,7 @@ import com.dat.backend.movied.user.repository.UserRepository;
 import com.dat.backend.movied.video.config.S3Properties;
 import com.dat.backend.movied.video.dto.request.*;
 import com.dat.backend.movied.video.dto.response.MultipartInitiateResponse;
+import com.dat.backend.movied.video.dto.response.PagesResponse;
 import com.dat.backend.movied.video.dto.response.PresignedUrlResponse;
 import com.dat.backend.movied.video.dto.response.VideoResponse;
 import com.dat.backend.movied.video.entity.Category;
@@ -14,9 +15,14 @@ import com.dat.backend.movied.video.exception.ResourceNotExit;
 import com.dat.backend.movied.video.exception.VideoUploadException;
 import com.dat.backend.movied.video.repository.VideoRepository;
 import com.dat.backend.movied.video.service.VideoService;
+import com.dat.backend.movied.video.util.Base64Helper;
 import com.dat.backend.movied.video.util.S3Helper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.websocket.AuthenticationException;
+import org.springframework.data.domain.KeysetScrollPosition;
+import org.springframework.data.domain.ScrollPosition;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Window;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -29,6 +35,8 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -120,24 +128,6 @@ public class VideoServiceImpl implements VideoService {
 
         // Generate the URL for download with GET request
         return createPresignedGetUrl(properties.getBucket(), video.getKeyStorage());
-    }
-
-    @Override
-    public List<VideoResponse> getAllVideo() {
-        List<Video> videos = videoRepository.findAll();
-        List<VideoResponse> videoResponses = new ArrayList<>();
-        for (Video video : videos) {
-            VideoResponse videoResponse = VideoResponse.builder()
-                    .url(video.getUrl())
-                    .title(video.getTitle())
-                    .description(video.getDescription())
-                    .id(video.getId())
-                    .category(String.valueOf(video.getCategory()))
-                    .authorName(video.getAuthorEmail())
-                    .build();
-            videoResponses.add(videoResponse);
-        }
-        return videoResponses;
     }
 
     @Override
@@ -393,26 +383,91 @@ public class VideoServiceImpl implements VideoService {
     }
 
     @Override
-    public List<VideoResponse> findRelateVideo(Long videoId) {
+    public PagesResponse findRelateVideo(Long videoId, String cursor) {
+
+        ScrollPosition sp;
+
+        // Nếu truy cập lần đầu thì không cần truyền cursor
+        if (Optional.ofNullable(cursor).isEmpty()) {
+            sp = ScrollPosition.keyset();
+        }
+        else {
+            Map<String, Object> keys = Base64Helper.decodeCursor(cursor);
+            sp = ScrollPosition.of(keys, ScrollPosition.Direction.FORWARD);
+        }
+
+        // Lấy ra các thông tin cần thiết
         Video video = videoRepository.findById(videoId).orElseThrow(() -> new RuntimeException("Video not found"));
         String category = video.getCategory().toString().toUpperCase();
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt").and(Sort.by(Sort.Direction.DESC, "id"));
 
-        log.info("Find relate video with category: {}", category);
-        List<Video> videos = videoRepository.findRelateVideo(category, videoId);
+        Window<Video> videos = videoRepository.findTop5ByCategoryAndIdNot(Category.valueOf(category), videoId, sp, sort);
+
+        // Trả về cursor để truyền cho các lần cuộn tiếp theo
+        ScrollPosition nextPos = videos.positionAt(videos.size() - 1);
+
+        if (nextPos instanceof KeysetScrollPosition keySetNextPos) {
+            Map<String, Object> keys = keySetNextPos.getKeys();
+            cursor = Base64Helper.encodeCursor(keys);
+        }
 
         List<VideoResponse> videoResponses = new ArrayList<>();
 
         for (Video v : videos) {
-            VideoResponse videoResponse = new VideoResponse();
-            videoResponse.setId(v.getId());
-            videoResponse.setTitle(v.getTitle());
-            videoResponse.setDescription(v.getDescription());
-            videoResponse.setCategory(v.getCategory().toString());
-            videoResponse.setUrl(v.getUrl());
-            videoResponse.setAuthorName(v.getAuthorEmail());
+            VideoResponse videoResponse = videoToVideoResponse(v);
             videoResponses.add(videoResponse);
         }
 
-        return videoResponses;
+        return PagesResponse.builder()
+                .videoResponses(videoResponses)
+                .cursor(cursor)
+                .hasMore(videos.hasNext())
+                .build();
+    }
+
+    @Override
+    public PagesResponse getAllVideos(String cursor) {
+
+        ScrollPosition sp;
+
+        // Nếu truy cập lần đầu thì không cần truyền cursor
+        if (Optional.ofNullable(cursor).isEmpty()) {
+            sp = ScrollPosition.keyset();
+        }
+        else {
+            Map<String, Object> keys = Base64Helper.decodeCursor(cursor);
+            sp = ScrollPosition.of(keys, ScrollPosition.Direction.FORWARD);
+        }
+
+        Window<Video> videos = videoRepository.findTop9ByOrderByIdDescCreatedAtDesc(sp);
+
+        // Trả về cursor để truyền cho các lần cuộn tiếp theo
+        ScrollPosition nextPos = videos.positionAt(videos.size() - 1);
+
+        if (nextPos instanceof KeysetScrollPosition keySetNextPos) {
+            Map<String, Object> keys = keySetNextPos.getKeys();
+            cursor = Base64Helper.encodeCursor(keys);
+        }
+
+        return PagesResponse.builder()
+                .videoResponses(videos.stream().map(
+                        this::videoToVideoResponse
+                ).collect(Collectors.toList()))
+                .cursor(cursor)
+                .hasMore(videos.hasNext())
+                .build();
+    }
+
+    private VideoResponse videoToVideoResponse(Video video) {
+        VideoResponse videoResponse = new VideoResponse();
+        videoResponse.setId(video.getId());
+        videoResponse.setTitle(video.getTitle());
+        videoResponse.setDescription(video.getDescription());
+        videoResponse.setAuthorName(video.getAuthorEmail());
+        videoResponse.setUrl(video.getUrl());
+        videoResponse.setCategory(video.getCategory().toString().toUpperCase());
+        videoResponse.setCreated_at(video.getCreatedAt());
+        videoResponse.setUpdated_at(video.getUpdatedAt());
+        return videoResponse;
     }
 }

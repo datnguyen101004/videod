@@ -2,6 +2,7 @@ package com.dat.backend.movied.video.service;
 
 import com.dat.backend.movied.video.dto.request.*;
 import com.dat.backend.movied.video.dto.response.MultipartInitiateResponse;
+import com.dat.backend.movied.video.dto.response.PagesResponse;
 import com.dat.backend.movied.video.dto.response.PresignedUrlResponse;
 import com.dat.backend.movied.video.dto.response.VideoResponse;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
@@ -12,8 +13,6 @@ public interface VideoService {
     public PresignedUrlResponse createPresignUrlSmallVideo(PresignUploadRequest presignUploadRequest, String email);
 
     String downloadVideo(VideoDownloadRequest videoDownloadRequest);
-
-    List<VideoResponse> getAllVideo();
 
     String deleteVideo(Long videoId, String email);
 
@@ -31,5 +30,7 @@ public interface VideoService {
 
     VideoResponse updateVideo(String title, String description, Long videoId, String email);
 
-    List<VideoResponse> findRelateVideo(Long videoId);
+    PagesResponse findRelateVideo(Long videoId, String cursor);
+
+    PagesResponse getAllVideos(String cursor);
 }

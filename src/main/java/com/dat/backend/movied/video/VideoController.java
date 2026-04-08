@@ -2,10 +2,7 @@ package com.dat.backend.movied.video;
 
 import com.dat.backend.movied.common.dto.ResponseApi;
 import com.dat.backend.movied.video.dto.request.*;
-import com.dat.backend.movied.video.dto.response.MultipartInitiateResponse;
-import com.dat.backend.movied.video.dto.response.PartUrlResponse;
-import com.dat.backend.movied.video.dto.response.PresignedUrlResponse;
-import com.dat.backend.movied.video.dto.response.VideoResponse;
+import com.dat.backend.movied.video.dto.response.*;
 import com.dat.backend.movied.video.service.VideoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -41,11 +38,6 @@ public class VideoController {
     @PostMapping(path = "/download")
     public ResponseApi<String> downloadVideo(@RequestBody VideoDownloadRequest videoDownloadRequest) {
         return ResponseApi.success(videoService.downloadVideo(videoDownloadRequest));
-    }
-
-    @GetMapping("/all")
-    public ResponseApi<List<VideoResponse>> getAllVideos() {
-        return ResponseApi.success(videoService.getAllVideo());
     }
 
     @PostMapping("/upload/multipart/initiate")
@@ -112,7 +104,14 @@ public class VideoController {
     }
 
     @GetMapping("/relate/{id}")
-    public ResponseApi<List<VideoResponse>> getRelateVideos(@PathVariable("id") Long videoId) {
-        return ResponseApi.success(videoService.findRelateVideo(videoId));
+    public ResponseApi<PagesResponse> getRelateVideos(@PathVariable("id") Long videoId,
+                                                            @RequestParam(name = "cursor", required = false) String cursor) {
+        return ResponseApi.success(videoService.findRelateVideo(videoId, cursor));
     }
+
+    @GetMapping("/all")
+    public ResponseApi<PagesResponse> getAllVideos(@RequestParam(name = "cursor", required = false) String cursor) {
+        return ResponseApi.success(videoService.getAllVideos(cursor));
+    }
+
 }

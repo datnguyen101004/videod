@@ -1,15 +1,17 @@
 package com.dat.backend.movied.video.entity;
 
+import com.dat.backend.movied.common.entity.TimeBaseEntity;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import software.amazon.awssdk.annotations.NotNull;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity(name = "videos")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Video {
+public class Video extends TimeBaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;

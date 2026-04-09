@@ -4,5 +4,5 @@ public enum Category {
     ENTERTAINMENT,
     EDUCATION,
     MUSIC,
-    SPORT
+    SPORTS
 }

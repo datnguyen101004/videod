@@ -402,12 +402,14 @@ public class VideoServiceImpl implements VideoService {
 
         Window<Video> videos = videoRepository.findTop5ByCategoryAndIdNot(Category.valueOf(category), videoId, sp, sort);
 
-        // Trả về cursor để truyền cho các lần cuộn tiếp theo
-        ScrollPosition nextPos = videos.positionAt(videos.size() - 1);
-
-        if (nextPos instanceof KeysetScrollPosition keySetNextPos) {
-            Map<String, Object> keys = keySetNextPos.getKeys();
-            cursor = Base64Helper.encodeCursor(keys);
+        // Lấy cursor cho scroll tiếp theo
+        String nextCursor = null;
+        if (!videos.isEmpty()) {
+            ScrollPosition nextPos = videos.positionAt(videos.size() - 1);
+            if (nextPos instanceof KeysetScrollPosition keySetNextPos) {
+                Map<String, Object> keys = keySetNextPos.getKeys();
+                nextCursor = Base64Helper.encodeCursor(keys);
+            }
         }
 
         List<VideoResponse> videoResponses = new ArrayList<>();
@@ -419,7 +421,7 @@ public class VideoServiceImpl implements VideoService {
 
         return PagesResponse.builder()
                 .videoResponses(videoResponses)
-                .cursor(cursor)
+                .cursor(nextCursor)
                 .hasMore(videos.hasNext())
                 .build();
     }
@@ -441,18 +443,20 @@ public class VideoServiceImpl implements VideoService {
         Window<Video> videos = videoRepository.findTop9ByOrderByIdDescCreatedAtDesc(sp);
 
         // Trả về cursor để truyền cho các lần cuộn tiếp theo
-        ScrollPosition nextPos = videos.positionAt(videos.size() - 1);
-
-        if (nextPos instanceof KeysetScrollPosition keySetNextPos) {
-            Map<String, Object> keys = keySetNextPos.getKeys();
-            cursor = Base64Helper.encodeCursor(keys);
+        String nextCursor = null;
+        if (!videos.isEmpty()) {
+            ScrollPosition nextPos = videos.positionAt(videos.size() - 1);
+            if (nextPos instanceof KeysetScrollPosition keySetNextPos) {
+                Map<String, Object> keys = keySetNextPos.getKeys();
+                nextCursor = Base64Helper.encodeCursor(keys);
+            }
         }
 
         return PagesResponse.builder()
                 .videoResponses(videos.stream().map(
                         this::videoToVideoResponse
                 ).collect(Collectors.toList()))
-                .cursor(cursor)
+                .cursor(nextCursor)
                 .hasMore(videos.hasNext())
                 .build();
     }
@@ -505,17 +509,20 @@ public class VideoServiceImpl implements VideoService {
         );
 
         // Lấy cursor cho scroll tiếp theo
-        ScrollPosition nextPos = videos.positionAt(videos.size() - 1);
-        if (nextPos instanceof KeysetScrollPosition keySetNextPos) {
-            Map<String, Object> keys = keySetNextPos.getKeys();
-            cursor = Base64Helper.encodeCursor(keys);
+        String nextCursor = null;
+        if (!videos.isEmpty()) {
+            ScrollPosition nextPos = videos.positionAt(videos.size() - 1);
+            if (nextPos instanceof KeysetScrollPosition keySetNextPos) {
+                Map<String, Object> keys = keySetNextPos.getKeys();
+                nextCursor = Base64Helper.encodeCursor(keys);
+            }
         }
 
         return PagesResponse.builder()
                 .videoResponses(videos.stream()
                         .map(this::videoToVideoResponse)
                         .collect(Collectors.toList()))
-                .cursor(cursor)
+                .cursor(nextCursor)
                 .hasMore(videos.hasNext())
                 .build();
     }

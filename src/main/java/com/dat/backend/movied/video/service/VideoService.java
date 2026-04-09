@@ -7,6 +7,7 @@ import com.dat.backend.movied.video.dto.response.PresignedUrlResponse;
 import com.dat.backend.movied.video.dto.response.VideoResponse;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 
+import java.time.Instant;
 import java.util.List;
 
 public interface VideoService {
@@ -33,4 +34,6 @@ public interface VideoService {
     PagesResponse findRelateVideo(Long videoId, String cursor);
 
     PagesResponse getAllVideos(String cursor);
+
+    PagesResponse searchWithPredicate(String title, String category, String description, Instant beforeDate, Instant afterDate, String cursor);
 }

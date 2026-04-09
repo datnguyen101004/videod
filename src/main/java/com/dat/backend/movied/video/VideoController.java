@@ -11,7 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 
-import java.util.List;
+import java.time.Instant;
 
 @RestController
 @RequiredArgsConstructor
@@ -114,4 +114,15 @@ public class VideoController {
         return ResponseApi.success(videoService.getAllVideos(cursor));
     }
 
+    @GetMapping("/search")
+    public ResponseApi<PagesResponse> searchWithSpecifications(
+            @RequestParam(value = "title", required = false) String title,
+            @RequestParam(value = "category", required = false) String category,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "before_date", required = false) Instant beforeDate,
+            @RequestParam(value = "after_date", required = false) Instant afterDate,
+            @RequestParam(value = "cursor", required = false) String cursor
+            ) {
+        return ResponseApi.success(videoService.searchWithPredicate(title, category, description, beforeDate, afterDate, cursor));
+    }
 }

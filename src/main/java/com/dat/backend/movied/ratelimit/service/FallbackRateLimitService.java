@@ -52,12 +52,12 @@ public class FallbackRateLimitService implements RateLimitService {
         }
     }
 
-    @Scheduled(cron = "0 */2 * * * ?")
+    @Scheduled(cron = "0 */5 * * * ?")
     public void checkHealthRedis() {
         try(StatefulRedisConnection<String, String> connection = redisClient.connect()) {
             String ping = connection.sync().ping();
             redisActive = "PONG".equalsIgnoreCase(ping);
-            log.info("Redis state: {}", redisActive);
+            //log.info("Redis state: {}", redisActive);
         }
         catch (Exception e) {
             redisActive = false;

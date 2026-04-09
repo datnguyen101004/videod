@@ -11,6 +11,7 @@ import com.dat.backend.movied.video.dto.response.PresignedUrlResponse;
 import com.dat.backend.movied.video.dto.response.VideoResponse;
 import com.dat.backend.movied.video.entity.Category;
 import com.dat.backend.movied.video.entity.Video;
+import com.dat.backend.movied.video.entity.Video_;
 import com.dat.backend.movied.video.exception.ResourceNotExit;
 import com.dat.backend.movied.video.exception.VideoUploadException;
 import com.dat.backend.movied.video.repository.VideoRepository;
@@ -23,6 +24,7 @@ import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
+import org.springframework.data.jpa.domain.PredicateSpecification;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -33,10 +35,7 @@ import software.amazon.awssdk.services.s3.presigner.model.*;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -453,6 +452,69 @@ public class VideoServiceImpl implements VideoService {
                 .videoResponses(videos.stream().map(
                         this::videoToVideoResponse
                 ).collect(Collectors.toList()))
+                .cursor(cursor)
+                .hasMore(videos.hasNext())
+                .build();
+    }
+
+    @Override
+    public PagesResponse searchWithPredicate(String title,
+                                             String category,
+                                             String description,
+                                             Instant beforeDate,
+                                             Instant afterDate,
+                                             String cursor) {
+
+        ScrollPosition sp;
+
+        if (Optional.ofNullable(cursor).isEmpty()) {
+            sp = ScrollPosition.keyset();
+        }
+        else {
+            Map<String, Object> keys = Base64Helper.decodeCursor(cursor);
+            sp = ScrollPosition.of(keys, ScrollPosition.Direction.FORWARD);
+        }
+
+        // Khai báo spec null
+        PredicateSpecification<Video> specs = PredicateSpecification.unrestricted();
+
+        if (Optional.ofNullable(title).isPresent()) {
+            specs = specs.and(VideoSpecs.titleLike(title));
+        }
+        
+        if (Optional.ofNullable(category).isPresent()) {
+            specs = specs.and(VideoSpecs.categoryEqual(Category.valueOf(category.toUpperCase())));
+        }
+
+        if (Optional.ofNullable(description).isPresent()) {
+            specs = specs.and(VideoSpecs.descriptionLike(description));
+        }
+
+        if (Optional.ofNullable(afterDate).isPresent()) {
+            specs = specs.and(VideoSpecs.afterAt(afterDate));
+        }
+
+        if (Optional.ofNullable(beforeDate).isPresent()) {
+            specs = specs.and(VideoSpecs.beforeAt(beforeDate));
+        }
+
+        Window<Video> videos = videoRepository.findBy(specs, q -> q
+                .limit(9)
+                .sortBy(Sort.by(Sort.Direction.DESC, Video_.ID).and(Sort.by(Sort.Direction.DESC, Video_.CREATED_AT)))
+                .scroll(sp)
+        );
+
+        // Lấy cursor cho scroll tiếp theo
+        ScrollPosition nextPos = videos.positionAt(videos.size() - 1);
+        if (nextPos instanceof KeysetScrollPosition keySetNextPos) {
+            Map<String, Object> keys = keySetNextPos.getKeys();
+            cursor = Base64Helper.encodeCursor(keys);
+        }
+
+        return PagesResponse.builder()
+                .videoResponses(videos.stream()
+                        .map(this::videoToVideoResponse)
+                        .collect(Collectors.toList()))
                 .cursor(cursor)
                 .hasMore(videos.hasNext())
                 .build();

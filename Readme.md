@@ -7,7 +7,8 @@ Dịch vụ backend Spring Boot cho nền tảng chia sẻ video. Hỗ trợ xá
 - **Xác thực & Phân quyền:** Đăng ký/đăng nhập bảo mật qua JWT (Stateless) và tích hợp đăng nhập một chạm (SSO) với Google OAuth2.
 - **Quản lý Upload Tối ưu:** Áp dụng luồng tải lên trực tiếp qua Presigned URL. Kiến trúc kết hợp Multipart Upload & Presigned URL chuyên biệt cho các tệp dung lượng lớn (>100MB), giúp tối ưu hiệu năng và độ ổn định.
 - **Kiểm soát lưu lượng (Rate Limiting):** Bảo vệ hệ thống khỏi lạm dụng cấp độ API (Plan-based) nhờ tích hợp thuật toán Token Bucket thông qua Bucket4j và Redis.
-- **Observability & Tài liệu học:** Thu thập metrics và theo dõi rủi ro hệ thống bằng Spring Actuator, Prometheus, trực quan hóa trên Grafana. Tích hợp sẵn OpenAPI/Swagger 3.0.
+- **Tối ưu hiệu năng:** Tính năng phân trang với Keyset-based và kết hợp với Fluent API cho việc phân trang với tính năng tìm kiếm sử dụng Criteria API.
+- **Observability** Thu thập metrics và theo dõi rủi ro hệ thống bằng Spring Actuator, Prometheus, trực quan hóa trên Grafana. Tích hợp sẵn OpenAPI/Swagger 3.0.
 - **Kiểm thử mã nguồn:** Đảm bảo tính đúng đắn của service với Mockito cho Unit Test và JUnit (kết hợp H2 / Testcontainers) cho Integration Test.
 - **DevOps & Triển khai:** Quản lý thay đổi schema DB với Flyway. Tích hợp CI/CD tự động hoá qua GitHub Actions, nâng cao bảo mật bằng Cloudflare (Reverse Proxy & HTTPS).
 

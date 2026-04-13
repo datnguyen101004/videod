@@ -1,4 +1,4 @@
-package com.dat.backend.movied.ratelimit.common;
+package com.dat.backend.movied.common.config;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -24,6 +24,11 @@ public class RedisRateLimitService implements RateLimitService {
         this.proxyManager = proxyManager;
     }
 
+    /**
+     * Why using hashmap cache here?
+     * Để khi các lần gọi tiếp theo không phải tạo mới Bucket. Với những user đã tồn tại thì không cần gọi proxyManager.builder().build(k, () -> config);
+     * Có thể tối ưu với các implement chuyên quản lí như caffeine
+     */
     private Bucket resolveBucket(String key, RateLimitPlan plan) {
         //log.info("Redis");
         String cacheKey = key + ":" + plan;

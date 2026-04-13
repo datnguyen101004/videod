@@ -52,6 +52,13 @@
             <version>2.42.4</version>
             <scope>compile</scope>
         </dependency>
+        <!-- Source: https://mvnrepository.com/artifact/tools.jackson.datatype/jackson-datatype-jsr310 -->
+        <dependency>
+            <groupId>tools.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>3.0.0-rc2</version>
+            <scope>compile</scope>
+        </dependency>
         <!-- Source: https://mvnrepository.com/artifact/software.amazon.awssdk/apache-client -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
@@ -132,6 +139,13 @@
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <!-- Source: https://mvnrepository.com/artifact/org.springframework.data/spring-data-redis -->
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-redis</artifactId>
+            <scope>compile</scope>
         </dependency>
 
 <!--        &lt;!&ndash; Source: https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-vault-config &ndash;&gt;-->

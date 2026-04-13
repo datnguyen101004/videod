@@ -1,6 +1,5 @@
 package com.dat.backend.movied.ratelimit.config;
 
-import com.dat.backend.movied.ratelimit.common.RedisProperty;
 import io.github.bucket4j.distributed.ExpirationAfterWriteStrategy;
 import io.github.bucket4j.distributed.proxy.ProxyManager;
 import io.github.bucket4j.redis.lettuce.cas.LettuceBasedProxyManager;
@@ -16,19 +15,6 @@ import java.time.Duration;
 
 @Configuration
 public class RateLimitConfig {
-    private final RedisProperty redisProperty;
-
-    public RateLimitConfig(RedisProperty redisProperty) {
-        this.redisProperty = redisProperty;
-    }
-
-    /**
-     * Redis config
-     */
-    @Bean
-    public RedisClient redisClient() {
-        return RedisClient.create(redisProperty.getUrl());
-    }
 
     @Bean(destroyMethod = "close")
     public StatefulRedisConnection<String, byte[]> redisConnection(RedisClient redisClient) {

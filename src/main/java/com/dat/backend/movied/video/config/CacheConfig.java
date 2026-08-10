@@ -36,8 +36,8 @@ public class CacheConfig {
         ObjectMapper objectMapper = JsonMapper.builder()
                 .addModule(new JavaTimeModule())
                 .configure(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-                .enable(SerializationFeature.INDENT_OUTPUT)
-                .activateDefaultTyping(basicPolymorphicTypeValidator, DefaultTyping.NON_FINAL)
+                .enable(SerializationFeature.INDENT_OUTPUT) // Dùng thụt lề cho json. Nên disable cho production để tiết kiệm bộ nhớ
+                .activateDefaultTyping(basicPolymorphicTypeValidator, DefaultTyping.NON_FINAL) //Lưu metadata các class
                 .build();
 
         GenericJacksonJsonRedisSerializer genericJacksonJsonRedisSerializer = new GenericJacksonJsonRedisSerializer(objectMapper);

@@ -23,6 +23,6 @@ public class Base64Helper {
         Map<String, Object> key = new HashMap<String, Object>();
         key.put("createdAt", createdAt);
         key.put("id", parts[1]);
-        return key;
+        return key; 
     }
 }

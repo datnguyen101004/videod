@@ -66,7 +66,7 @@ public class VideoServiceImpl implements VideoService {
     @Override
     public PresignedUrlResponse createPresignUrlSmallVideo(PresignUploadRequest presignUploadRequest, String email) {
         try {
-            log.info("Uploading video...");
+            //log.info("Uploading video...");
             // Get the enough properties
             String filename = presignUploadRequest.getFilename();
             long fileSize = presignUploadRequest.getFileSize();
@@ -105,13 +105,12 @@ public class VideoServiceImpl implements VideoService {
 
             String url = presignedPutObjectRequest.url().toString();
 
-            log.info("Presign url: {}", url);
+            //log.info("Presign url: {}", url);
 
             return PresignedUrlResponse.builder()
                     .url(url)
                     .key(key)
                     .build();
-
         }
         catch (Exception e) {
             throw new VideoUploadException(e.getMessage());
